@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勞動權益遊戲倉庫整合系統</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="包含多款勞動權益教育遊戲，透過互動式體驗學習求職安全、薪資計算、及法律規範。">
+    <meta name="author" content="Liyuchiutiger Gongminshen">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-cyan: #00f3ff;
+            --c-gold: #ffd700;
+            --c-dark: #020205;
+            --c-panel: rgba(15, 20, 30, 0.8);
+            --c-card-bg: rgba(255, 255, 255, 0.05);
+            --c-gradient: linear-gradient(45deg, var(--c-cyan), var(--c-gold));
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--c-dark);
+            color: #fff;
+            font-family: 'Noto Sans TC', 'Outfit', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- 動態網格背景 --- */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image: 
+                linear-gradient(var(--c-gold) 1px, transparent 1px),
+                linear-gradient(90deg, var(--c-gold) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.05;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+            animation: grid-pulse 10s infinite alternate;
+        }
+
+        @keyframes grid-pulse {
+            from { transform: scale(1); opacity: 0.05; }
+            to { transform: scale(1.1); opacity: 0.1; }
+        }
+
+        .gradient-blur {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        /* --- 容器 --- */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* --- Header / Hero --- */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--c-cyan), var(--c-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* --- 遊戲網格 --- */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        /* --- 遊戲卡片 --- */
+        .game-card {
+            background: var(--c-card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: transparent;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 243, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .game-card:hover::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: var(--c-gradient);
+            border-radius: inherit;
+            z-index: -1;
+            padding: 1px;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .game-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            background: var(--c-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .game-card:hover .card-icon {
+            transform: scale(1.1) rotate(-5deg);
+            filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));
+        }
+
+        .card-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .card-content p {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-play {
+            background: var(--c-gradient);
+            color: #000;
+            padding: 8px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            transition: var(--transition);
+        }
+
+        .game-card:hover .btn-play {
+            filter: brightness(1.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+
+
+        /* --- 吉祥物樣式 --- */
+        .mascot-container {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 150px;
+            z-index: 9999;
+            cursor: move;
+            transition: transform 0.2s;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .mascot-container img {
+            width: 100%;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.5));
+            pointer-events: none;
+        }
+
+        @keyframes neon-shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); filter: drop-shadow(0 0 15px #ff0000); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); filter: drop-shadow(0 0 20px #ff7f00); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); filter: drop-shadow(0 0 15px #ffff00); }
+            30% { transform: translate(3px, 2px) rotate(0deg); filter: drop-shadow(0 0 20px #00ff00); }
+            40% { transform: translate(1px, -1px) rotate(1deg); filter: drop-shadow(0 0 15px #0000ff); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); filter: drop-shadow(0 0 20px #4b0082); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); filter: drop-shadow(0 0 15px #9400d3); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); filter: drop-shadow(0 0 20px #ff00ff); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); filter: drop-shadow(0 0 15px #00f3ff); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); filter: drop-shadow(0 0 20px #ff0000); }
+        }
+
+        .mascot-container:hover img {
+            animation: neon-shake 0.4s infinite linear;
+        }
+
+        .mascot-container.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+            transition: none;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 50px;
+        }
+
+        .fb-link {
+            margin-bottom: 20px;
+        }
+
+        .fb-link a {
+            color: var(--c-cyan);
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            font-weight: 700;
+        }
+
+        .fb-link a i {
+            font-size: 1.8rem;
+        }
+
+        .fb-link a:hover {
+            color: var(--c-gold);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            h1 { font-size: 2.5rem; }
+            .game-grid { grid-template-columns: 1fr; }
+            .mascot-container { width: 100px; bottom: 20px; left: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="gradient-blur"></div>
+
+    <div id="mascot" class="mascot-container" title="拖曳我到處移動！">
+        <img src="image/LiyuChillGuy.svg" alt="Mascot" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/React.svg/512px-React.svg.png'">
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Labor Rights Game Warehouse</h1>
+            <p class="subtitle">勞動權益遊戲倉庫整合系統</p>
+        </header>
+
+        <main id="game-portal">
+            <div class="game-grid" id="main-grid"></div>
+        </main>
+
+        <footer>
+            <div class="fb-link">
+                <a href="https://www.facebook.com/happyliyuchilltiger" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+                </a>
+            </div>
+            <p>Copyright © Liyuchiutiger Gongminshen</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- 拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        const startDragging = (e) => {
+            isDragging = true;
+            mascot.classList.add('dragging');
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+            startX = clientX;
+            startY = clientY;
+            const rect = mascot.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            document.addEventListener('mousemove', handleDragging);
+            document.addEventListener('mouseup', stopDragging);
+            document.addEventListener('touchmove', handleDragging, { passive: false });
+            document.addEventListener('touchend', stopDragging);
+        };
+
+        const handleDragging = (e) => {
+            if (!isDragging) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            mascot.style.left = `${initialLeft + dx}px`;
+            mascot.style.top = `${initialTop + dy}px`;
+            mascot.style.bottom = 'auto';
+            mascot.style.right = 'auto';
+        };
+
+        const stopDragging = () => {
+            isDragging = false;
+            mascot.classList.remove('dragging');
+            document.removeEventListener('mousemove', handleDragging);
+            document.removeEventListener('mouseup', stopDragging);
+            document.removeEventListener('touchmove', handleDragging);
+            document.removeEventListener('touchend', stopDragging);
+        };
+
+        mascot.addEventListener('mousedown', startDragging);
+        mascot.addEventListener('touchstart', startDragging);
+
+        // --- 遊戲卡片渲染邏輯 ---
+        const games = [
+            {
+                title: "體感求職防騙七不三要",
+                file: "體感求職防騙七不三要遊戲系統.html",
+                icon: "fa-person-rays",
+                desc: "透過攝影機體感捕捉，學習辨識求職陷阱的【七不三要】原則，挑戰反應與知識。"
+            },
+            {
+                title: "求職防騙找碴",
+                file: "求職防騙找碴遊戲系統.html",
+                icon: "fa-magnifying-glass",
+                desc: "火眼金睛找出求職廣告中的可疑之處，防止陷入非法打工陷阱。"
+            },
+            {
+                title: "工讀契約神找碴",
+                file: "工讀契約神找碴遊戲系統.html",
+                icon: "fa-file-signature",
+                desc: "仔細檢查工讀契約中的每一項條款，守護你的法律權益。"
+            },
+            {
+                title: "K.O.慣老闆",
+                file: "K.O.慣老闆遊戲系統.html",
+                icon: "fa-hand-fist",
+                desc: "面對無理要求，運用法律知識擊敗慣老闆，維護職場正義。"
+            },
+            {
+                title: "加班費計算",
+                file: "加班費計算遊戲系統.html",
+                icon: "fa-coins",
+                desc: "精準計算平日與國定假日的加班費，確保付出的勞力獲得應有報酬。"
+            },
+            {
+                title: "職業災害神防禦",
+                file: "職業災害神防禦遊戲系統.html",
+                icon: "fa-user-shield",
+                desc: "學習職災預防知識，建立最強職場防禦系統，讓安全第一。"
+            },
+            {
+                title: "工作排班策略",
+                file: "工作排班策略遊戲系統.html",
+                icon: "fa-calendar-check",
+                desc: "模擬真實排班情境，學習如何合理安排工時與休息。"
+            },
+            {
+                title: "一例一休工作日排程",
+                file: "一例一休工作日排程遊戲系統.html",
+                icon: "fa-clock",
+                desc: "深入了解一例一休規範，完美規畫符合法規的工作時程。"
+            }
+        ];
+
+        function renderPortal() {
+            const grid = document.getElementById('main-grid');
+            games.forEach(game => {
+                const card = document.createElement('a');
+                card.href = game.file;
+                card.className = 'game-card';
+                card.innerHTML = `
+                    <div class="card-body">
+                        <div class="card-icon"><i class="fas ${game.icon}"></i></div>
+                        <div class="card-content">
+                            <h3>${game.title}</h3>
+                            <p>${game.desc}</p>
+                        </div>
+                    </div>
+                    <div class="card-footer" style="justify-content: center;">
+                        <span class="btn-play">START <i class="fas fa-chevron-right"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        window.onload = renderPortal;
+    </script>
+</body>
+</html>

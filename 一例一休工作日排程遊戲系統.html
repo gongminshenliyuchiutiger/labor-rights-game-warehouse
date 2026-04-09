@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一例一休工作日排程遊戲系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+            --work-color: #3498db;
+            --rest-day-color: #f39c12; /* 休息日 */
+            --leave-day-color: #2ecc71; /* 例假日 */
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-panel {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .story-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            float: right;
+            transition: filter 0.3s;
+        }
+
+        .next-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* ---------------- 排班模擬器專用樣式 ---------------- */
+        .scheduler-stats {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+        }
+
+        .scheduler-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media screen and (max-width: 600px) {
+            .scheduler-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .time-slot {
+            padding: 10px 2px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+            transition: transform 0.1s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .time-slot:active {
+            transform: scale(0.95);
+        }
+
+        .slot-work {
+            background-color: var(--work-color);
+            color: white;
+            border-color: #2980b9;
+            box-shadow: 0 4px #2980b9;
+        }
+        .slot-work:active {
+            box-shadow: 0 0 #2980b9;
+            transform: translateY(4px);
+        }
+
+        .slot-rest-day {
+            background-color: var(--rest-day-color);
+            color: white;
+            border-color: #d35400;
+            box-shadow: 0 4px #d35400;
+        }
+        .slot-rest-day:active {
+            box-shadow: 0 0 #d35400;
+            transform: translateY(4px);
+        }
+
+        .slot-leave-day {
+            background-color: var(--leave-day-color);
+            color: white;
+            border-color: #27ae60;
+            box-shadow: 0 4px #27ae60;
+        }
+        .slot-leave-day:active {
+            box-shadow: 0 0 #27ae60;
+            transform: translateY(4px);
+        }
+
+        .check-schedule-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .check-schedule-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* ---------------- 吉祥物 ---------------- */
+        #mascot {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+        #mascot:active {
+            cursor: grabbing;
+        }
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-calendar-days"></i> 一例一休工作日排程遊戲系統</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- 關卡 1：故事開端 -->
+        <div class="game-panel active" id="level1">
+            <h2 class="panel-title"><i class="fa-solid fa-bed-pulse"></i> 第一關：連上 12 天的浩劫？</h2>
+            <div class="story-box">
+                「老闆要求你連續趕工上 12 天班不准放假，幫忙度過這陣子的爆單旺季...」<br><br>
+                <strong>提問：</strong>你覺得一個人連續工作兩週完全不休息，對身心會有什麼影響？
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL1(false)">A. 只要拿到豐厚的加班費，身體疲勞都可以靠意志力克服！</button>
+                <button class="option-btn" onclick="checkL1(true)">B. 可能導致嚴重過勞，甚至引發心血管疾病，社會整體醫療成本也會上升！</button>
+            </div>
+            <div id="fb-l1" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l1" onclick="nextLevel('level2')">進入一週排班挑戰 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 2：日曆卡排班挑戰 -->
+        <div class="game-panel" id="level2">
+            <h2 class="panel-title"><i class="fa-regular fa-calendar-check"></i> 第二關：整個月 30 天大挑戰</h2>
+            <div class="story-box">
+                一週太簡單了？現在換你來挑戰整個月 30 天的班表！<br>
+                <strong>任務：</strong> 點擊下方的日曆方塊，切換「工作日」、「休息日」、「例假日」，排出一份完全合法的班表！<br>
+                <small style="color:var(--accent-color);">提示：整個月裡至少要有 4 天例假、4 天休息日，且勞工絕對不能連續工作超過 6 天喔！</small>
+            </div>
+
+            <div class="scheduler-stats">
+                <div><i class="fa-solid fa-briefcase" style="color:var(--work-color)"></i> 工作日：<span id="work-days-display">30</span> 天</div>
+                <div><i class="fa-solid fa-mug-hot" style="color:var(--rest-day-color)"></i> 休息日：<span id="rest-days-display">0</span> 天</div>
+                <div><i class="fa-solid fa-house-chimney-medical" style="color:var(--leave-day-color)"></i> 例假日：<span id="leave-days-display">0</span> 天</div>
+            </div>
+
+            <div class="scheduler-grid" id="calendar-grid">
+                <!-- JS 動態生成 7 天 -->
+            </div>
+
+            <button class="check-schedule-btn" onclick="checkCalendar()"><i class="fa-solid fa-clipboard-check"></i> 送出排班審核</button>
+
+            <div id="fb-l2" class="feedback-msg" style="margin-top: 20px;"></div>
+            <button class="next-btn" id="next-l2" onclick="nextLevel('level3')">前往下一關 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 3：休息日 vs 例假日 -->
+        <div class="game-panel" id="level3">
+            <h2 class="panel-title"><i class="fa-solid fa-scale-balanced"></i> 第三關：雙倍薪水的誘惑</h2>
+            <div class="story-box">
+                班表排出來後，老闆發現人手還是不夠，於是跑來對你說：<br>
+                「既然你排了這天是<strong>『例假日』</strong>，那這天你還是回來上班吧！我給你<strong>雙倍薪水</strong>總行了吧！」<br><br>
+                <strong>提問：</strong>老闆在「例假日」給雙倍錢叫你回來，合法嗎？
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL3(true)">A. 違法！「例假」除非遇到天災事變等極端情況，否則嚴禁加班！</button>
+                <button class="option-btn" onclick="checkL3(false)">B. 合法！員工同意且有給雙倍薪水就能來上班。</button>
+            </div>
+            <div id="fb-l3" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l3" onclick="nextLevel('level4')">繼續探討 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 4：法律為什麼要限制 -->
+        <div class="game-panel" id="level4">
+            <h2 class="panel-title"><i class="fa-solid fa-comments"></i> 第四關：例假不能換錢的理由</h2>
+            <div class="story-box">
+                聽完你的解釋，同事忍不住抱怨：「我就是想要多賺點錢啊，為什麼法律要限制例假不能隨便換成加班費？」<br><br>
+                <strong>討論：</strong>為什麼勞基法要強制介入，規定例假絕不能挪用？
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL4(true)">A. 如果大家都為了錢捨棄休息，遲早會引發大規模過勞，導致社會整體的醫療與意外成本大幅上升！</button>
+                <button class="option-btn" onclick="checkL4(false)">B. 因為老闆不想付太多雙倍薪水，政府是為了替企業省錢。</button>
+            </div>
+            <div id="fb-l4" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l4" onclick="nextLevel('level5')">迎接最終考核 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 5, 6, 7：核心觀念檢核 -->
+        <div class="game-panel" id="level5">
+            <h2 class="panel-title"><i class="fa-solid fa-shield-halved"></i> 最終檢核防線 (1/3)</h2>
+            <div class="story-box">
+                勞工局檢查員突然到訪！請回答他的問題：<br>
+                <strong>「檢核 Q1：勞工每 7 日應有多少天的休息作為『例假』？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ1(false)">A. 不需要例假，只要錢給夠就好。</button>
+                <button class="option-btn" onclick="checkQ1(true)">B. 至少應有 1 天作為例假。</button>
+            </div>
+            <div id="fb-q1" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q1" onclick="nextLevel('level6')">下一題 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="game-panel" id="level6">
+            <h2 class="panel-title"><i class="fa-solid fa-shield-halved"></i> 最終檢核防線 (2/3)</h2>
+            <div class="story-box">
+                <strong>「檢核 Q2：『休息日』加班跟『例假日』加班最大的差別在哪裡？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ2(false)">A. 兩者都一樣，只要付雙倍薪水就可以隨便加班。</button>
+                <button class="option-btn" onclick="checkQ2(true)">B. 休息日可合法加班並領較高加班費；例假則強制禁止加班（除非天災）。</button>
+            </div>
+            <div id="fb-q2" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q2" onclick="nextLevel('level7')">下一題 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="game-panel" id="level7">
+            <h2 class="panel-title"><i class="fa-solid fa-shield-halved"></i> 最終檢核防線 (3/3)</h2>
+            <div class="story-box">
+                <strong>「檢核 Q3：雇主可以要求勞工連上 7 天班而不給例假嗎？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ3(true)">A. 不行。原則上勞工不得連續工作超過 6 天！</button>
+                <button class="option-btn" onclick="checkQ3(false)">B. 可以啊，只要勞工簽下自願不休假同意書就沒問題。</button>
+            </div>
+            <div id="fb-q3" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q3" onclick="nextLevel('level8')">領取破關護身符 <i class="fa-solid fa-flag-checkered"></i></button>
+        </div>
+
+        <!-- 關卡 8：總結 -->
+        <div class="game-panel" id="level8">
+            <h2 class="panel-title"><i class="fa-solid fa-trophy"></i> 恭喜破關！獲得勞動神護身符</h2>
+            <div style="text-align: center; padding: 20px;">
+                <i class="fa-solid fa-calendar-check" style="font-size: 80px; color: var(--success-color); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--primary-color);">【一例一休神防禦護身符】</h3>
+                <p style="font-size: 18px; line-height: 2;">
+                    <strong>🔸 7 天要有 2 休，例假絕不能挪！</strong><br>
+                    <strong>🔸 休息日加班給較高費用，例假日嚴禁加班！</strong><br>
+                    <strong>🔸 勞工不得連續工作超過 6 天！</strong><br><br>
+                    身體健康才是最重要的資產，保護自己，勇敢拒絕過勞！
+                </p>
+                <button class="check-schedule-btn" style="margin-top:20px; max-width: 200px;" onclick="location.reload()">再玩一次</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        Copyright &copy; Liyuchiutiger Gongminshen
+    </footer>
+
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <script>
+        // --- 通用切換關卡邏輯 ---
+        function nextLevel(nextId) {
+            document.querySelectorAll('.game-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(nextId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showFeedback(id, isCorrect, text) {
+            const fb = document.getElementById(id);
+            fb.style.display = 'block';
+            if (isCorrect) {
+                fb.style.backgroundColor = '#eafaf1';
+                fb.style.color = 'var(--success-color)';
+                fb.style.borderLeft = '5px solid var(--success-color)';
+                fb.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${text}`;
+            } else {
+                fb.style.backgroundColor = '#fdeaea';
+                fb.style.color = 'var(--accent-color)';
+                fb.style.borderLeft = '5px solid var(--accent-color)';
+                fb.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+            }
+        }
+
+        // --- 關卡 1 邏輯 ---
+        function checkL1(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l1', true, "觀念非常正確！連續高強度工作會大幅增加猝死與心血管疾病的風險。休息是為了走更長遠的路！");
+                document.getElementById('next-l1').style.display = 'block';
+            } else {
+                showFeedback('fb-l1', false, "答錯囉！人的身體不是鐵打的，短期靠意志力撐著，長期下來絕對會崩潰生病，賺的錢可能還不夠付醫藥費呢！");
+            }
+        }
+
+        // --- 關卡 2 日曆排班邏輯 ---
+        // 0: 工作日, 1: 休息日, 2: 例假日
+        let currentL2Slots = new Array(30).fill(0); 
+        const dayNames = ["一", "二", "三", "四", "五", "六", "日"];
+        const grid = document.getElementById('calendar-grid');
+
+        function initCalendar() {
+            grid.innerHTML = '';
+            currentL2Slots.forEach((type, index) => {
+                const el = document.createElement('div');
+                el.className = 'time-slot';
+                
+                let label = "";
+                let icon = "";
+                if (type === 0) {
+                    el.classList.add('slot-work');
+                    label = "工作日";
+                    icon = '<i class="fa-solid fa-briefcase"></i>';
+                } else if (type === 1) {
+                    el.classList.add('slot-rest-day');
+                    label = "休息日";
+                    icon = '<i class="fa-solid fa-mug-hot"></i>';
+                } else {
+                    el.classList.add('slot-leave-day');
+                    label = "例假日";
+                    icon = '<i class="fa-solid fa-house-chimney-medical"></i>';
+                }
+                
+                el.innerHTML = `<span style="font-size:12px;">Day ${index + 1} (星期${dayNames[index % 7]})</span><br><span style="font-size:24px;">${icon}</span><br><strong>${label}</strong>`;
+                el.onclick = () => toggleDay(index);
+                grid.appendChild(el);
+            });
+            updateCalendarStats();
+        }
+
+        function toggleDay(index) {
+            currentL2Slots[index] = (currentL2Slots[index] + 1) % 3;
+            document.getElementById('fb-l2').style.display = 'none'; // 隱藏舊回饋
+            initCalendar(); // 重新渲染
+        }
+
+        function updateCalendarStats() {
+            let work = currentL2Slots.filter(v => v === 0).length;
+            let rest = currentL2Slots.filter(v => v === 1).length;
+            let leave = currentL2Slots.filter(v => v === 2).length;
+            document.getElementById('work-days-display').innerText = work;
+            document.getElementById('rest-days-display').innerText = rest;
+            document.getElementById('leave-days-display').innerText = leave;
+        }
+
+        function checkCalendar() {
+            let restCount = currentL2Slots.filter(v => v === 1).length;
+            let leaveCount = currentL2Slots.filter(v => v === 2).length;
+
+            if (leaveCount < 4) {
+                showFeedback('fb-l2', false, "審核失敗：以一個月 30 天來看，至少要排入 4 天「例假日」喔！例假是死規定，絕不能挪用！");
+                return;
+            }
+
+            if (restCount < 4) {
+                showFeedback('fb-l2', false, "審核失敗：休息日不夠喔！為了落實週休二日，整個月至少應排出 4 天以上的「休息日」才合格。");
+                return;
+            }
+
+            let maxConsecutiveWork = 0;
+            let currentStr = 0;
+            for(let i = 0; i < currentL2Slots.length; i++) {
+                if(currentL2Slots[i] === 0) {
+                    currentStr++;
+                    if(currentStr > maxConsecutiveWork) maxConsecutiveWork = currentStr;
+                } else {
+                    currentStr = 0;
+                }
+            }
+
+            if (maxConsecutiveWork > 6) {
+                showFeedback('fb-l2', false, "審核失敗：發生過勞異常！嚴禁讓勞工連續工作超過 6 天（含 7 天）！請把休假稍微打散，確保中途有休息。");
+                return;
+            }
+
+            showFeedback('fb-l2', true, "審核通過！這是一份完全合法的好班表！成功克服整個月的排班挑戰，保障了員工的例假與休息權益！");
+            document.getElementById('next-l2').style.display = 'block';
+        }
+
+        // --- 關卡 3 邏輯 ---
+        function checkL3(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l3', true, "沒錯！「例假」的防護等級最高，除非遇到非常極端的天災事變，否則老闆給再多錢都不能要求員工依法取消例假來上班！");
+                document.getElementById('next-l3').style.display = 'block';
+            } else {
+                showFeedback('fb-l3', false, "錯囉！你分不清楚「休息日」和「例假日」了！休息日才可以給雙倍薪水請你來加班，例假日是【鐵腕禁止加班】的喔！");
+            }
+        }
+
+        // --- 關卡 4 邏輯 ---
+        function checkL4(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l4', true, "完全正確！若完全交給市場機制，最終一定演變成全民不休假、過勞死頻傳的慘劇，社會的健保等醫療成本反而會讓所有人一起承擔！");
+                document.getElementById('next-l4').style.display = 'block';
+            } else {
+                showFeedback('fb-l4', false, "不對喔！政府是為了保護勞工的「生命健康權」，避免弱勢勞工被迫為了生存而拼命過勞。");
+            }
+        }
+
+        // --- Boss 戰邏輯 ---
+        function checkQ1(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q1', true, "答對了！法規要求每 7 日「至少應有 1 天作為例假」。");
+                document.getElementById('next-q1').style.display = 'block';
+            } else showFeedback('fb-q1', false, "檢查員搖頭：錯了！每 7 日一定要有至少 1 天例假！");
+        }
+
+        function checkQ2(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q2', true, "答對了！休息日加班需付較高加班費；例假則嚴格禁止加班。");
+                document.getElementById('next-q2').style.display = 'block';
+            } else showFeedback('fb-q2', false, "檢查員搖頭：錯了！「例假日」與「休息日」的定義與法律規範是完全不一樣的喔！");
+        }
+
+        function checkQ3(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q3', true, "完美！原則上勞工絕對不得連續工作超過 6 天！恭喜全部通關！");
+                document.getElementById('next-q3').style.display = 'block';
+            } else showFeedback('fb-q3', false, "檢查員怒斥：錯！「勞基法不能因為員工簽字同意就放棄掉」！連上 7 天是絕對違法的！");
+        }
+
+        // 初始化
+        initCalendar();
+
+        // --- 吉祥物拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let initialX, initialY, xOffset = 0, yOffset = 0;
+
+        mascot.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', drag);
+        mascot.addEventListener('touchstart', dragStart, {passive: false});
+        document.addEventListener('touchend', dragEnd);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            if (e.target === mascot) {
+                isDragging = true;
+                e.preventDefault(); 
+            }
+        }
+
+        function dragEnd(e) {
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                let currentX, currentY;
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>

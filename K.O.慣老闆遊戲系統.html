@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K.O.慣老闆遊戲系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-panel {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .story-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            float: right;
+            transition: filter 0.3s;
+        }
+
+        .next-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* ---------------- 蒐證互動樣式 ---------------- */
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        @media screen and (max-width: 500px) {
+            .evidence-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .evidence-card {
+            border: 2px dashed #95a5a6;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+        }
+        .evidence-card:hover {
+            border-color: var(--primary-color);
+            background-color: #ecf0f1;
+        }
+        .evidence-card.found {
+            background-color: #eafaf1;
+            border-color: var(--success-color);
+            border-style: solid;
+            color: var(--success-color);
+            pointer-events: none;
+        }
+        .evidence-card.wrong {
+            background-color: #fdeaea;
+            border-color: var(--accent-color);
+            border-style: solid;
+            color: var(--accent-color);
+            animation: shakeBtn 0.4s;
+        }
+
+        @keyframes shakeBtn {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .evidence-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* ---------------- 吉祥物 ---------------- */
+        #mascot {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+        #mascot:active {
+            cursor: grabbing;
+        }
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-gavel"></i> K.O.慣老闆遊戲系統</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- 關卡 1：故事開端 -->
+        <div class="game-panel active" id="level1">
+            <h2 class="panel-title"><i class="fa-solid fa-poo-storm"></i> 第一關：風暴來襲</h2>
+            <div class="story-box">
+                「老闆今天突然把你叫進辦公室破口大罵，甚至宣佈這個月因為你績效未達標，要直接無故扣你 3,000 元薪水...」<br><br>
+                <strong>提問：</strong>心中怒火滿溢，你的第一步應該是立刻跟老闆翻臉大吵一架，還是怎麼做？
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL1(false)">A. 破鍋破摔！大庭廣眾跟他吵架理論，不給他面子！</button>
+                <button class="option-btn" onclick="checkL1(true)">B. 壓抑怒火，假裝順從，轉頭立刻截圖、拍照、留存所有對話紀錄！</button>
+            </div>
+            <div id="fb-l1" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l1" onclick="nextLevel('level2')">進入蒐證考驗 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 2：蒐證大作戰 -->
+        <div class="game-panel" id="level2">
+            <h2 class="panel-title"><i class="fa-solid fa-folder-open"></i> 第二關：全民蒐證大作戰</h2>
+            <div class="story-box">
+                勞資糾紛最怕「口說無憑」！你沒有簽訂紙本合約，也沒有白紙黑字的調薪單。<br>
+                <strong>任務：</strong> 點擊下方卡片，找出 <strong>3 項</strong>真正有效的防禦工具與證據！<br>
+                <small style="color:var(--accent-color);">（迷思破除：沒有紙本合約，用 LINE 交代要上班能當證據嗎？）</small>
+            </div>
+
+            <div class="evidence-grid" id="evidence-grid">
+                <!-- 透過 JS 渲染 -->
+            </div>
+
+            <div id="fb-l2" class="feedback-msg" style="display:block; background:#fff; border:1px dashed #ccc; font-weight:normal; text-align:center;">
+                找出 3 項有效證據（目前找到：<span id="l2-score" style="font-weight:bold; color:var(--success-color);">0</span> / 3）
+            </div>
+            <div id="msg-l2" class="feedback-msg"></div>
+
+            <button class="next-btn" id="next-l2" onclick="nextLevel('level3')">前往求助管道 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 3：1955 諮詢 -->
+        <div class="game-panel" id="level3">
+            <h2 class="panel-title"><i class="fa-solid fa-headset"></i> 第三關：求救信號撥出</h2>
+            <div class="story-box" style="text-align: center;">
+                <i class="fa-solid fa-phone-volume" style="font-size: 60px; color: var(--accent-color); margin: 15px 0;"></i><br>
+                <span style="font-size: 24px; font-weight: bold;">模擬撥打 1955 專線</span><br><br>
+                <div style="text-align: left;">
+                    準備好證據後，你打算打電話向勞動部求助。<br>
+                    <strong>提問：</strong>「我有點害怕...打 1955 詢問勞資糾紛，它是匿名的嗎？會不會立刻被老闆發現是我舉報的然後惹上麻煩？」
+                </div>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL3(false)">A. 會！撥打專線後雇主會立刻收到簡訊通知，建議直接妥協。</button>
+                <button class="option-btn" onclick="checkL3(true)">B. 不用怕！諮詢階段是完全保密的，正式申訴也可以要求匿名保密勞工身分。</button>
+            </div>
+            <div id="fb-l3" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l3" onclick="nextLevel('level4')">迎接最終考核 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 4, 5, 6：核心觀念檢核 -->
+        <div class="game-panel" id="level4">
+            <h2 class="panel-title"><i class="fa-solid fa-scale-balanced"></i> 權益防衛檢核 (1/3)</h2>
+            <div class="story-box">
+                勞動部專員開始幫你釐清案件重點：<br>
+                <strong>「檢核 Q1：請問全國通用的勞資爭議 免費諮詢與申訴專線 是多少？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ1(false)">A. 撥打 165 反詐騙專線去報案。</button>
+                <button class="option-btn" onclick="checkQ1(true)">B. 撥打 1955 勞工諮詢申訴專線。</button>
+            </div>
+            <div id="fb-q1" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q1" onclick="nextLevel('level5')">下一題 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="game-panel" id="level5">
+            <h2 class="panel-title"><i class="fa-solid fa-scale-balanced"></i> 權益防衛檢核 (2/3)</h2>
+            <div class="story-box">
+                <strong>「檢核 Q2：為證明雇主違法扣薪，以下哪些項目算是有效的『薪資證明』文件？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ2(true)">A. 薪資發放條、存摺匯款紀錄、甚至談論薪水發放的 Line 對話細節。</button>
+                <button class="option-btn" onclick="checkQ2(false)">B. 只有蓋了公司發票大章的正式薪水公文才算有效證據。</button>
+            </div>
+            <div id="fb-q2" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q2" onclick="nextLevel('level6')">下一題 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div class="game-panel" id="level6">
+            <h2 class="panel-title"><i class="fa-solid fa-scale-balanced"></i> 權益防衛檢核 (3/3)</h2>
+            <div class="story-box">
+                <strong>「檢核 Q3：如果你現在很生氣，氣到直接離職了，離職後才發現當初老闆還少幫你繳勞保，這時候還能檢舉他嗎？」</strong>
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkQ3(false)">A. 不行了。既然已經不是員工，勞資權利義務就結束了。</button>
+                <button class="option-btn" onclick="checkQ3(true)">B. 可以！只要有留下受僱期間的證據，權益追溯並不會因為離職而結束。</button>
+            </div>
+            <div id="fb-q3" class="feedback-msg"></div>
+            <button class="next-btn" id="next-q3" onclick="nextLevel('level7')">領取破關護身符 <i class="fa-solid fa-flag-checkered"></i></button>
+        </div>
+
+        <!-- 關卡 7：總結 -->
+        <div class="game-panel" id="level7">
+            <h2 class="panel-title"><i class="fa-solid fa-trophy"></i> 恭喜破關！獲得勞動神護身符</h2>
+            <div style="text-align: center; padding: 20px;">
+                <i class="fa-solid fa-hand-fist" style="font-size: 80px; color: var(--success-color); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--primary-color);">【K.O. 慣老闆神防禦護身符】</h3>
+                <p style="font-size: 18px; line-height: 2;">
+                    <strong>🔸 1955 有求必應，免費諮詢匿名保密處理！</strong><br>
+                    <strong>🔸 Line對話、薪資條、存摺明細、打卡紀錄全是強力證據！</strong><br>
+                    <strong>🔸 證據第一心不驚，權益不因離職而消滅！</strong><br><br>
+                    冷靜應對、默默存證，才是捍衛自己工作權益的最強大招！
+                </p>
+                <button class="check-schedule-btn" style="margin-top:20px; max-width: 200px;" onclick="location.reload()">再玩一次</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        Copyright &copy; Liyuchiutiger Gongminshen
+    </footer>
+
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <script>
+        // --- 通用切換關卡邏輯 ---
+        function nextLevel(nextId) {
+            document.querySelectorAll('.game-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(nextId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showFeedback(id, isCorrect, text) {
+            const fb = document.getElementById(id);
+            fb.style.display = 'block';
+            if (isCorrect) {
+                fb.style.backgroundColor = '#eafaf1';
+                fb.style.color = 'var(--success-color)';
+                fb.style.borderLeft = '5px solid var(--success-color)';
+                fb.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${text}`;
+            } else {
+                fb.style.backgroundColor = '#fdeaea';
+                fb.style.color = 'var(--accent-color)';
+                fb.style.borderLeft = '5px solid var(--accent-color)';
+                fb.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+            }
+        }
+
+        // --- 關卡 1 邏輯 ---
+        function checkL1(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l1', true, "觀念絕佳！吵架毫無意義，而且一旦撕破臉老闆可能火速刪除證據或竄改紀錄。默默存檔、截圖自保才是最聰明的做法！");
+                document.getElementById('next-l1').style.display = 'block';
+            } else {
+                showFeedback('fb-l1', false, "冷靜點！現在吵架只會打草驚蛇，更糟的是如果口出惡言，還可能反過來被老闆提告公然侮辱！蒐集證據才是第一要務！");
+            }
+        }
+
+        // --- 關卡 2 蒐證邏輯 ---
+        const evidenceData = [
+            { id: 1, text: "LINE <br>班表與對話截圖", icon: "fa-comments", valid: true, explanation: "完全有效！即使沒紙本合約，通訊軟體對話紀錄（例如老闆用Line叫你上班或扣薪）具備極強法律效力。" },
+            { id: 2, text: "公司打卡紀錄 <br>& 監控監視器照片", icon: "fa-clock", valid: true, explanation: "必備證據！證明你真的有出缺勤以及加班工時。" },
+            { id: 3, text: "存摺匯款明細 <br>& 實體薪資條", icon: "fa-money-check-dollar", valid: true, explanation: "勞工局最好查核的證據！用來直接對照雇主有沒有無故扣款或沒給加班費。" },
+            { id: 4, text: "沒錄音的<br>私下口頭約定", icon: "fa-person-booth", valid: false, explanation: "弱點很大！「口說無憑」，若雙方說詞不一，上了法庭雇主很容易死不認帳！" }
+        ];
+
+        let foundEvidences = 0;
+        const totalEvidences = 3;
+
+        function initEvidenceGrid() {
+            const grid = document.getElementById('evidence-grid');
+            grid.innerHTML = '';
+            // 隨機打亂陣列
+            const shuffled = evidenceData.sort(() => Math.random() - 0.5);
+            
+            shuffled.forEach(item => {
+                let btn = document.createElement('div');
+                btn.className = 'evidence-card';
+                btn.innerHTML = `<div class="evidence-icon"><i class="fa-solid ${item.icon}"></i></div><div><strong>${item.text}</strong></div>`;
+                btn.onclick = () => checkEvidence(btn, item);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkEvidence(btn, item) {
+            if (btn.classList.contains('found') || btn.classList.contains('wrong')) return;
+
+            const msgBox = document.getElementById('msg-l2');
+            msgBox.style.display = 'block';
+
+            if (item.valid) {
+                btn.classList.add('found');
+                btn.innerHTML = `<div class="evidence-icon"><i class="fa-solid fa-check-circle"></i></div><div><strong>${item.text}</strong></div>`;
+                foundEvidences++;
+                document.getElementById('l2-score').innerText = foundEvidences;
+                
+                msgBox.style.backgroundColor = '#eafaf1';
+                msgBox.style.color = 'var(--success-color)';
+                msgBox.style.borderLeft = '5px solid var(--success-color)';
+                msgBox.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${item.explanation}`;
+
+                if (foundEvidences === totalEvidences) {
+                    document.getElementById('next-l2').style.display = 'block';
+                }
+            } else {
+                btn.classList.add('wrong');
+                setTimeout(() => btn.classList.remove('wrong'), 500); // 重置可以點擊
+                
+                msgBox.style.backgroundColor = '#fdeaea';
+                msgBox.style.color = 'var(--accent-color)';
+                msgBox.style.borderLeft = '5px solid var(--accent-color)';
+                msgBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 錯誤：${item.explanation}`;
+            }
+        }
+
+        initEvidenceGrid();
+
+        // --- 關卡 3 邏輯 ---
+        function checkL3(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l3', true, "正確！1955 有求必應且嚴守個資保護，諮詢更是完全匿名。放膽打過去，專員會成為你最好的後盾！");
+                document.getElementById('next-l3').style.display = 'block';
+            } else {
+                showFeedback('fb-l3', false, "錯囉！政府部門受理申訴時會以「保密」方式進行勞檢，不會直接洩漏是哪位員工投訴的。");
+            }
+        }
+
+        // --- Boss 戰邏輯 (Q1, Q2, Q3) ---
+        function checkQ1(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q1', true, "答對了！有任何勞資糾紛、甚至薪水問題，記得直撥 1955 ！");
+                document.getElementById('next-q1').style.display = 'block';
+            } else showFeedback('fb-q1', false, "錯了！165是防詐騙專線，勞資糾紛真正的武器是 1955 ！");
+        }
+
+        function checkQ2(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q2', true, "答對了！證據不限格式，只要能清楚辨識薪資明細與雙方合意內容的都是鐵證。");
+                document.getElementById('next-q2').style.display = 'block';
+            } else showFeedback('fb-q2', false, "錯囉！法律並不只承認蓋章公文，Line對話截圖與存摺明細都是法庭與勞動局強力認證的證據！");
+        }
+
+        function checkQ3(isCorrect) {
+            if(isCorrect) {
+                showFeedback('fb-q3', true, "完美！權利追溯不因離職結束，只要你有證據，還是能依法討回公道！");
+                document.getElementById('next-q3').style.display = 'block';
+            } else showFeedback('fb-q3', false, "錯了！很多勞工都是因為這樣白白放棄權益。離職不代表老闆先前的違法就一筆勾銷喔！");
+        }
+
+        // --- 吉祥物拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let initialX, initialY, xOffset = 0, yOffset = 0;
+
+        mascot.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', drag);
+        mascot.addEventListener('touchstart', dragStart, {passive: false});
+        document.addEventListener('touchend', dragEnd);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            if (e.target === mascot) {
+                isDragging = true;
+                e.preventDefault(); 
+            }
+        }
+
+        function dragEnd(e) {
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                let currentX, currentY;
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>

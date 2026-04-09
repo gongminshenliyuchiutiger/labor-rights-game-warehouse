@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作排班遊戲系統</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+            --work-color: #3498db;
+            --rest-color: #2ecc71;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 關卡面板切換邏輯 */
+        .game-panel {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .game-panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .story-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 20px;
+            border-radius: 0 5px 5px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .option-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none; /* 預設隱藏，過關才出現 */
+            float: right;
+            transition: filter 0.3s;
+        }
+
+        .next-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .feedback-msg {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+
+        /* 排班模擬器專用樣式 */
+        .scheduler-stats {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+        }
+
+        .scheduler-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .time-slot {
+            padding: 12px 5px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.1s;
+            border: 2px solid transparent;
+        }
+
+        .time-slot:active {
+            transform: scale(0.95);
+        }
+
+        .slot-work {
+            background-color: var(--work-color);
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .slot-rest {
+            background-color: var(--rest-color);
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .check-schedule-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .check-schedule-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 找碴專用區塊 */
+        .trap-box {
+            background-color: var(--paper-color);
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #e0d8c3;
+            line-height: 2;
+            font-size: 18px;
+        }
+
+        .sentence {
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .sentence:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-bottom: 2px dashed #3498db;
+        }
+        .sentence.found-trap {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--accent-color);
+            text-decoration: line-through;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        .sentence.safe {
+            background-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-color);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* 吉祥物 */
+        #mascot {
+            position: fixed;
+            bottom: 60px;
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+        #mascot:active {
+            cursor: grabbing;
+        }
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-clock"></i> 工作排班遊戲系統</h1>
+    </header>
+
+    <div class="main-container">
+        
+        <!-- 關卡 1：連站 5 小時 -->
+        <div class="game-panel active" id="level1">
+            <h2 class="panel-title"><i class="fa-solid fa-1"></i> 第一關：飲料店的浩劫</h2>
+            <div class="story-box">
+                「今天手搖飲店大排長龍，店長說生意太好大家共體時艱，讓你連續站著結帳搖飲料 <strong>5 個半小時</strong>，連喝口水的時間都沒有...」<br><br>
+                提問：請問即使店長平時人很好，法律會允許他讓店員連續做這麼久不休息嗎？
+            </div>
+            <div class="options-container">
+                <button class="option-btn" onclick="checkL1(false)">A. 合法，生意忙碌時勞工應配合雇主加班趕工。</button>
+                <button class="option-btn" onclick="checkL1(true)">B. 違法！每工作滿 4 小時就必須給予休息時間！</button>
+            </div>
+            <div id="fb-l1" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l1" onclick="nextLevel('level2')">進入排班挑戰 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 2：排班模擬器 -->
+        <div class="game-panel" id="level2">
+            <h2 class="panel-title"><i class="fa-solid fa-2"></i> 第二關：自己的班表自己排</h2>
+            <div class="story-box">
+                店長說既然你懂法律，那明天的班表換你排！<br>
+                <strong>情境：</strong> 早上 09:00 上班，18:00 離開公司（在公司共 9 小時）。<br>
+                <strong>任務：</strong> 請點擊下方時段方塊，切換「工作」與「休息」，排出一份完全合法的班表！<br>
+                <small style="color:var(--accent-color);">提示：注意總工時 8 小時，並且不要不小心讓員工連續上班超過 4 小時喔！</small>
+            </div>
+
+            <div class="scheduler-stats">
+                <div><i class="fa-solid fa-stopwatch" style="color:var(--work-color)"></i> 總工作時數：<span id="work-hours-display">9.0</span> 小時</div>
+                <div><i class="fa-solid fa-mug-hot" style="color:var(--rest-color)"></i> 總休息時數：<span id="rest-hours-display">0.0</span> 小時</div>
+            </div>
+
+            <div class="scheduler-grid" id="scheduler-grid">
+                <!-- JS 動態生成 18 個時段格 -->
+            </div>
+
+            <button class="check-schedule-btn" onclick="checkSchedule()"><i class="fa-solid fa-clipboard-check"></i> 送出排班審核</button>
+
+            <div id="fb-l2" class="feedback-msg" style="margin-top: 20px;"></div>
+            <button class="next-btn" id="next-l2" onclick="nextLevel('level3')">前往下一關 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 3：找碴 -->
+        <div class="game-panel" id="level3">
+            <h2 class="panel-title"><i class="fa-solid fa-3"></i> 第三關：違法班表大找碴</h2>
+            <div class="story-box">
+                總部傳來了一份其它分店的班表，聽說裡面藏了壓榨勞工的「過勞陷阱」！<br>
+                <strong>任務：</strong> 點擊下方的句子，找出 2 個違法陷阱！
+            </div>
+            
+            <div class="trap-box" id="trap-container">
+                <div class="sentence" data-type="safe" data-id="1">📌 星期一：09:00~18:00 (中間 12:00~13:00 為法定午休 1 小時)。</div><br>
+                <div class="sentence" data-type="trap" data-id="2">📌 星期三：12:00~13:00 為休息時間，為維持服務品質，休息時請留在櫃台幫我接聽外送電話。</div><br>
+                <div class="sentence" data-type="trap" data-id="3">📌 特別公告：因應寒假旺季到來，下個月全體人員週一至週日需連續上班 7 天，不得排休。</div><br>
+            </div>
+            
+            <div id="fb-l3" class="feedback-msg" style="display:block; background:#fff; border:1px dashed #ccc; font-weight:normal; text-align:center;">
+                找出 2 個違法陷阱（目前找到：<span id="l3-score" style="font-weight:bold; color:var(--accent-color);">0</span> / 2）
+            </div>
+            <button class="next-btn" id="next-l3" onclick="nextLevel('level4')">迎接最終考核 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 關卡 4：Boss 戰 -->
+        <div class="game-panel" id="level4">
+            <h2 class="panel-title"><i class="fa-solid fa-meteor"></i> 最終關：核心觀念守衛戰</h2>
+            <div class="story-box" id="boss-story">
+                最後的檢核！回答勞工局檢查員的提問：
+                <strong>「每日正常工時的上限，最高是多少小時？」</strong>
+            </div>
+            <div class="options-container" id="boss-options">
+                <button class="option-btn" onclick="checkBoss(false)">A. 只要給雙倍薪水，想做幾小時都可以，沒有上限。</button>
+                <button class="option-btn" onclick="checkBoss(true)">B. 每日上限 8 小時，每週上限 40 小時。</button>
+            </div>
+            
+            <div id="fb-l4" class="feedback-msg"></div>
+            <button class="next-btn" id="next-l4" onclick="nextLevel('level5')">查看破關護身符 <i class="fa-solid fa-flag-checkered"></i></button>
+        </div>
+
+        <!-- 關卡 5：總結 -->
+        <div class="game-panel" id="level5">
+            <h2 class="panel-title"><i class="fa-solid fa-trophy"></i> 恭喜破關！獲得勞動神護身符</h2>
+            <div style="text-align: center; padding: 20px;">
+                <i class="fa-solid fa-bed" style="font-size: 80px; color: var(--success-color); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--primary-color);">【排班神防禦護身符】</h3>
+                <p style="font-size: 18px; line-height: 2;">
+                    休息是為了走更長遠的路，更是為了保障人身安全！<br><br>
+                    <strong>🔸 4 小時必休半小時</strong><br>
+                    <strong>🔸 休息時間必須完全自由支配，待命就是加班！</strong><br>
+                    <strong>🔸 每日正常上限 8 小時！</strong>
+                </p>
+                <button class="check-schedule-btn" style="margin-top:20px; max-width: 200px;" onclick="location.reload()">再玩一次</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        Copyright &copy; Liyuchiutiger Gongminshen
+    </footer>
+
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <script>
+        // --- 通用切換關卡邏輯 ---
+        function nextLevel(nextId) {
+            document.querySelectorAll('.game-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(nextId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showFeedback(id, isCorrect, text) {
+            const fb = document.getElementById(id);
+            fb.style.display = 'block';
+            if (isCorrect) {
+                fb.style.backgroundColor = '#eafaf1';
+                fb.style.color = 'var(--success-color)';
+                fb.style.borderLeft = '5px solid var(--success-color)';
+                fb.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${text}`;
+            } else {
+                fb.style.backgroundColor = '#fdeaea';
+                fb.style.color = 'var(--accent-color)';
+                fb.style.borderLeft = '5px solid var(--accent-color)';
+                fb.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+            }
+        }
+
+        // --- 關卡 1 邏輯 ---
+        function checkL1(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l1', true, "觀念正確！勞基法第35條規定：勞工繼續工作四小時，至少應有三十分鐘之休息。連站 5 小時完全違法！");
+                document.getElementById('next-l1').style.display = 'block';
+            } else {
+                showFeedback('fb-l1', false, "答錯囉！即使店長人很好，法律規定工作滿4小時「必須」休息半小時，不能任意剝削休息時間喔！");
+            }
+        }
+
+        // --- 關卡 2 排班模擬器邏輯 ---
+        const timeline = [
+            "09:00","09:30","10:00","10:30","11:00","11:30",
+            "12:00","12:30","13:00","13:30","14:00","14:30",
+            "15:00","15:30","16:00","16:30","17:00","17:30"
+        ]; // 每格 0.5 小時，共 18 格 (9小時)
+        
+        // true: Work, false: Rest
+        let slots = new Array(18).fill(true); 
+
+        const grid = document.getElementById('scheduler-grid');
+        
+        function initScheduler() {
+            grid.innerHTML = '';
+            slots.forEach((isWork, index) => {
+                const el = document.createElement('div');
+                el.className = `time-slot ${isWork ? 'slot-work' : 'slot-rest'}`;
+                
+                // 顯示起訖時間 (例如 09:00 - 09:30)
+                let endTime = index === 17 ? "18:00" : timeline[index+1];
+                el.innerHTML = `${timeline[index]}<br>|${endTime}<br>${isWork ? '(工作)' : '(休息)'}`;
+                
+                el.onclick = () => toggleSlot(index);
+                grid.appendChild(el);
+            });
+            updateStats();
+        }
+
+        function toggleSlot(index) {
+            slots[index] = !slots[index]; // 反轉狀態
+            document.getElementById('fb-l2').style.display = 'none'; // 隱藏舊回饋
+            initScheduler(); // 重新渲染
+        }
+
+        function updateStats() {
+            let workCount = slots.filter(v => v === true).length;
+            let restCount = slots.filter(v => v === false).length;
+            document.getElementById('work-hours-display').innerText = (workCount * 0.5).toFixed(1);
+            document.getElementById('rest-hours-display').innerText = (restCount * 0.5).toFixed(1);
+        }
+
+        function checkSchedule() {
+            let workCount = slots.filter(v => v === true).length;
+            let totalWorkHours = workCount * 0.5;
+
+            // 規則 1：不得超過 8 小時（16格）
+            if (totalWorkHours > 8.0) {
+                showFeedback('fb-l2', false, `審核失敗：總工作時數高達 ${totalWorkHours} 小時！違反每日最高 8 小時的正常工時規定喔！`);
+                return;
+            }
+
+            // 規則 2：不得連續工作超過 4 小時 (即不能有 > 8 格連續為 true)
+            let maxConsecutiveWork = 0;
+            let currentConsecutive = 0;
+            let errorTimeStart = "";
+            let foundError = false;
+
+            for (let i = 0; i < slots.length; i++) {
+                if (slots[i] === true) {
+                    if (currentConsecutive === 0) errorTimeStart = timeline[i]; // 記錄連續段的起點
+                    currentConsecutive++;
+                    if (currentConsecutive > 8 && !foundError) {
+                        foundError = true; // 找到了過勞區段
+                    }
+                } else {
+                    currentConsecutive = 0;
+                }
+            }
+
+            if (foundError) {
+                showFeedback('fb-l2', false, `【過勞警告】你在某些區段連續安排了超過 4 小時的工作（連續 9 格工作）！這是非常常見的排班盲點，請確保每工作滿 4 小時一定要插入「綠色的休息方塊」隔開！`);
+                return;
+            }
+
+            // 合法！
+            showFeedback('fb-l2', true, `審核通過！這是一份完全合法的好老闆班表！總工時為 ${totalWorkHours} 小時，且完美避開了連續工作過勞陷阱。`);
+            document.getElementById('next-l2').style.display = 'block';
+        }
+
+        // --- 關卡 3 找碴邏輯 ---
+        let foundL3Traps = 0;
+        const totalL3Traps = 2;
+        const l3Sentences = document.querySelectorAll('#level3 .sentence');
+        
+        l3Sentences.forEach(s => {
+            s.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const id = this.getAttribute('data-id');
+
+                if (type === 'trap' && !this.classList.contains('found-trap')) {
+                    this.classList.add('found-trap');
+                    foundL3Traps++;
+                    document.getElementById('l3-score').innerText = foundL3Traps;
+                    
+                    let msg = "";
+                    if(id == "2") msg = "抓到陷阱！休息時間必須能由勞工「自由支配」，若是被規定接聽電話或待命，在法律上還是算作工作時間，雇主依然要付工資！";
+                    if(id == "3") msg = "抓到陷阱！勞工每 7 天中至少應有 1 天例假與 1 天休息日（也就是一例一休）。連續上班 7 天大違法！";
+                    
+                    alert(msg);
+
+                    if (foundL3Traps === totalL3Traps) {
+                        document.getElementById('next-l3').style.display = 'block';
+                    }
+                } else if (type === 'safe' && !this.classList.contains('safe')) {
+                    this.classList.add('safe');
+                    alert("這是完全正常與合法的安全條款喔！");
+                }
+            });
+        });
+
+        // --- 關卡 4 Boss 戰邏輯 ---
+        function checkBoss(isCorrect) {
+            if (isCorrect) {
+                showFeedback('fb-l4', true, "完美擊殺！每日正常工時上限 8 小時，每週上限 40 小時。超過的就是加班，必須依法給付加班費！");
+                document.getElementById('next-l4').style.display = 'block';
+            } else {
+                showFeedback('fb-l4', false, "檢查員表示不滿意：不對喔！工時不是只要給錢就能無限延長，為了保護勞工健康，是有法定數字上限的！");
+            }
+        }
+
+        // 初始化
+        initScheduler();
+
+        // --- 吉祥物拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let initialX, initialY, xOffset = 0, yOffset = 0;
+
+        mascot.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', drag);
+        mascot.addEventListener('touchstart', dragStart, {passive: false});
+        document.addEventListener('touchend', dragEnd);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            if (e.target === mascot) {
+                isDragging = true;
+                e.preventDefault(); 
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>

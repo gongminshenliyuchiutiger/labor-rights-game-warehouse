@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>職業災害神防禦遊戲系統</title>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .instructions {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .game-board {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .contract-paper {
+            flex: 2;
+            background-color: var(--paper-color);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.2);
+            font-size: 18px;
+            line-height: 2;
+            min-width: 300px;
+            border: 1px solid #e0d8c3;
+            background-image: repeating-linear-gradient(transparent, transparent 35px, #e0d8c3 35px, #e0d8c3 36px);
+            background-attachment: local;
+        }
+
+        .contract-paper h2 {
+            text-align: center;
+            margin-top: 0;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            background: var(--paper-color);
+        }
+
+        /* 互動句子樣式 */
+        .sentence {
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: inline;
+        }
+
+        .sentence:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-bottom: 2px dashed #3498db;
+        }
+
+        .sentence.found-trap {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--accent-color);
+            text-decoration: line-through;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .sentence.safe {
+            background-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-color);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .dashboard {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-board {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .feedback-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feedback-card {
+            padding: 15px;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback-card.trap {
+            background-color: #fdeaea;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .feedback-card.safe {
+            background-color: #eafaf1;
+            border-left: 5px solid var(--success-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* 吉祥物樣式與動畫 */
+        #mascot {
+            position: fixed;
+            bottom: 60px; /* 避免擋住 footer */
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+
+        #mascot:active {
+            cursor: grabbing;
+        }
+
+        /* 懸停：霓虹彩色發光 + 抖動 */
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-hard-hat"></i> 職業災害神防禦遊戲系統</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="instructions">
+            <i class="fa-solid fa-circle-info" style="color: #3498db;"></i>
+            <strong>遊戲規則：</strong> 點擊右方職場日誌中你認為「違法規避職災責任」的陷阱。找出全部 4 個陷阱即可過關！要小心不要點到合法的安全權益喔。
+        </div>
+
+        <div class="game-board">
+            <!-- 契約區 -->
+            <div class="contract-paper" id="contractContent">
+                <h2>【黑心企業工安與事故處理日誌】</h2>
+                <p>近期公司內發生多起勞工事故，老闆召開會議並宣告以下內規：</p>
+                <p>案例一：<span class="sentence" data-id="1" data-type="safe">若員工於上下班必經途中發生車禍，只要沒有違反重大交通規則（如酒駕），即可視為職業災害申請相關給付。</span></p>
+                <p>案例二：<span class="sentence" data-id="2" data-type="trap">廚房人員滑倒骨折，店長表示這是員工自己走路不小心，醫療費需自行負擔，且請病假期間不給予薪水。</span></p>
+                <p>規定一：<span class="sentence" data-id="3" data-type="trap">為加快工程進度，新進人員不需完成「安全衛生教育訓練」，也未發放防墜安全帶，即可直接攀爬鷹架施工。</span></p>
+                <p>法規宣導：<span class="sentence" data-id="4" data-type="safe">作業人員執行職務時，若發現有立即發生危險之虞（如機器漏電起火），有權暫停作業並退避至安全處所。</span></p>
+                <p>案例三：<span class="sentence" data-id="5" data-type="trap">員工下班打卡後，因主管臨時要求留下來幫忙搬貨而砸傷腳，公司認定「已打卡下班」故不屬職業災害。</span></p>
+                <p>案例四：<span class="sentence" data-id="6" data-type="trap">時薪打工族小美被咖啡機嚴重燙傷，老闆說：「你是時薪工讀生，沒有保勞保所以無法申請任何職災補償。」</span></p>
+            </div>
+
+            <!-- 儀表板區 -->
+            <div class="dashboard">
+                <div class="score-board">
+                    <i class="fa-solid fa-shield-halved"></i> 揪出陷阱：<span id="score">0</span> / 4
+                </div>
+                <div class="feedback-area" id="feedbackArea">
+                    <div style="text-align: center; color: #7f8c8d; margin-top: 20px;">
+                        <i class="fa-solid fa-hand-pointer fa-2x"></i><br>點擊左側文字開始防禦
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Copyright &copy; Liyuchiutiger Gongminshen
+    </footer>
+
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <!-- 遊戲邏輯與拖曳功能 -->
+    <script>
+        // --- 遊戲資料與邏輯 ---
+        const feedbackData = {
+            1: { text: "這是勞工權益！確實，上下班或出差途中正常往返，無重大交通違規行為而在途中受傷，可提出「通勤職災」的申請。", icon: "fa-check-circle" },
+            2: { text: "防禦失敗！在工作場所執行的意外即屬職災。雇主依法必須補償「完全的醫療費用」，且醫療不能工作期間應給予「原領工資補償」！", icon: "fa-triangle-exclamation" },
+            3: { text: "防禦失敗！此舉嚴重違反《職業安全衛生法》。雇主有責任提供符合標準的安全設備，且員工必須受過安全衛生教育訓練才可上工。", icon: "fa-triangle-exclamation" },
+            4: { text: "這是勞工權益！這稱為「退避權」，面對立即危險時，勞工優先確保人身安全是受法律保障的合法權益。", icon: "fa-check-circle" },
+            5: { text: "防禦失敗！依據職災認定精神，只要是「為了雇主提供勞務」而受傷，不論是否已經打卡下班或處於休息時間，均屬於職業災害。", icon: "fa-triangle-exclamation" },
+            6: { text: "防禦失敗！只要有僱傭關係，無論全職或工讀，一發生職災雇主皆須負擔補償責任。未幫勞工投保是老闆違法受罰，但員工求償權利不會受損！", icon: "fa-triangle-exclamation" }
+        };
+
+        let foundTraps = 0;
+        const totalTraps = 4;
+        const sentences = document.querySelectorAll('.sentence');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const scoreDisplay = document.getElementById('score');
+
+        sentences.forEach(sentence => {
+            sentence.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const type = this.getAttribute('data-type');
+                
+                // 如果是第一次點擊，清除提示文字
+                if(feedbackArea.innerHTML.includes('fa-hand-pointer')) {
+                    feedbackArea.innerHTML = '';
+                }
+
+                if (type === 'trap' && !this.classList.contains('found-trap')) {
+                    // 點中陷阱
+                    this.classList.add('found-trap');
+                    foundTraps++;
+                    scoreDisplay.innerText = foundTraps;
+                    
+                    addFeedback(id, 'trap');
+
+                    if (foundTraps === totalTraps) {
+                        setTimeout(() => {
+                            alert('神防禦成功！你已經熟悉職災防護網，遇到黑心公司也不怕了！');
+                        }, 500);
+                    }
+                } else if (type === 'safe' && !this.classList.contains('safe')) {
+                    // 點到安全條款
+                    this.classList.add('safe');
+                    addFeedback(id, 'safe');
+                }
+            });
+        });
+
+        function addFeedback(id, type) {
+            const data = feedbackData[id];
+            const card = document.createElement('div');
+            card.className = `feedback-card ${type}`;
+            
+            const titleColor = type === 'trap' ? 'color: var(--accent-color);' : 'color: var(--success-color);';
+            const titleText = type === 'trap' ? '揪出違規陷阱！' : '這是正確觀念！';
+
+            card.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px; ${titleColor}">
+                    <i class="fa-solid ${data.icon}"></i> ${titleText}
+                </div>
+                <div>${data.text}</div>
+            `;
+            // 將最新的回饋加到最上面
+            feedbackArea.insertBefore(card, feedbackArea.firstChild);
+        }
+
+        // --- 吉祥物拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        mascot.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', drag);
+
+        // 支援觸控螢幕
+        mascot.addEventListener('touchstart', dragStart, {passive: false});
+        document.addEventListener('touchend', dragEnd);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+
+            if (e.target === mascot) {
+                isDragging = true;
+                // 停止預設行為以避免拖曳圖片產生重影
+                e.preventDefault(); 
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>

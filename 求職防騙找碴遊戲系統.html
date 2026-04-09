@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>求職防騙找碴遊戲系統</title>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+        }
+
+        body {
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .instructions {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .game-board {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .contract-paper {
+            flex: 2;
+            background-color: var(--paper-color);
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.2);
+            font-size: 18px;
+            line-height: 2;
+            min-width: 300px;
+            border: 1px solid #e0d8c3;
+            background-image: repeating-linear-gradient(transparent, transparent 35px, #e0d8c3 35px, #e0d8c3 36px);
+            background-attachment: local;
+        }
+
+        .contract-paper h2 {
+            text-align: center;
+            margin-top: 0;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            background: var(--paper-color);
+        }
+
+        /* 互動句子樣式 */
+        .sentence {
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            display: inline;
+        }
+
+        .sentence:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-bottom: 2px dashed #3498db;
+        }
+
+        .sentence.found-trap {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--accent-color);
+            text-decoration: line-through;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .sentence.safe {
+            background-color: rgba(39, 174, 96, 0.2);
+            color: var(--success-color);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .dashboard {
+            flex: 1;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-board {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .feedback-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feedback-card {
+            padding: 15px;
+            border-radius: 5px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback-card.trap {
+            background-color: #fdeaea;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .feedback-card.safe {
+            background-color: #eafaf1;
+            border-left: 5px solid var(--success-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* 吉祥物樣式與動畫 */
+        #mascot {
+            position: fixed;
+            bottom: 60px; /* 避免擋住 footer */
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+
+        #mascot:active {
+            cursor: grabbing;
+        }
+
+        /* 懸停：霓虹彩色發光 + 抖動 */
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fa-solid fa-user-shield"></i> 求職防騙找碴遊戲系統</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="instructions">
+            <i class="fa-solid fa-circle-info" style="color: #3498db;"></i>
+            <strong>遊戲規則：</strong> 點擊右方面試信件中你認為「違法/可疑」的詐騙陷阱。找出全部 4 個陷阱即可過關！要小心不要點到正常的內容喔。
+        </div>
+
+        <div class="game-board">
+            <!-- 契約區 -->
+            <div class="contract-paper" id="contractContent">
+                <h2>【星夢娛樂公司】面試通知函</h2>
+                <p>親愛的求職者您好！恭喜您進入本公司的徵才審核，以下為相關工作條件與報到須知：</p>
+                <p>第一條：<span class="sentence" data-id="1" data-type="safe">初任薪資為月薪新台幣 30,000 ~ 35,000 元，依規定投保勞工保險、就業保險及全民健康保險。</span></p>
+                <p>第二條：<span class="sentence" data-id="2" data-type="trap">因應遠端建檔作業，請求職者報到前先寄出存摺正本、提款卡與密碼以利總公司審核。</span></p>
+                <p>第三條：<span class="sentence" data-id="3" data-type="trap">本專員職缺免經驗、免面試、工時超級彈性，保證日入 5000，月入破十萬。</span></p>
+                <p>第四條：<span class="sentence" data-id="4" data-type="safe">現場面試時請攜帶個人列印之履歷表及最高學歷畢業證書影本，供主管初審參考。</span></p>
+                <p>第五條：<span class="sentence" data-id="5" data-type="trap">為確保求職者向心力，報到當日務必先繳交 5,000 元現金作為「教育訓練保證金」或「材料費」。</span></p>
+                <p>第六條：<span class="sentence" data-id="6" data-type="trap">員工錄取後，必須先刷卡購買公司總價 3 萬元的保健產品，以示對產品的了解才能上線服務。</span></p>
+            </div>
+
+            <!-- 儀表板區 -->
+            <div class="dashboard">
+                <div class="score-board">
+                    <i class="fa-solid fa-skull-crossbones"></i> 找到陷阱：<span id="score">0</span> / 4
+                </div>
+                <div class="feedback-area" id="feedbackArea">
+                    <div style="text-align: center; color: #7f8c8d; margin-top: 20px;">
+                        <i class="fa-solid fa-hand-pointer fa-2x"></i><br>點擊左側信件文字開始找碴
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Copyright &copy; Liyuchiutiger Gongminshen
+    </footer>
+
+    <!-- 吉祥物 -->
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <!-- 遊戲邏輯與拖曳功能 -->
+    <script>
+        // --- 遊戲資料與邏輯 ---
+        const feedbackData = {
+            1: { text: "這是正常條款！合法的公司必須給予符合勞基法的薪資，並主動幫員工加保勞健保。", icon: "fa-check-circle" },
+            2: { text: "防騙陷阱！『不離身』：絕不可交出存摺與提款卡密碼，極易淪為詐騙集團的「人頭帳戶」，讓自己變成詐欺共犯！", icon: "fa-triangle-exclamation" },
+            3: { text: "防騙陷阱！『要存疑』：「天下沒有白吃的午餐」，工作條件太好、免經驗卻有不合理的高薪，幾乎 100% 是詐騙圈套。", icon: "fa-triangle-exclamation" },
+            4: { text: "這是正常條款！面試時提供基礎履歷與學歷證明影本供審核，是常見的正常流程。", icon: "fa-check-circle" },
+            5: { text: "防騙陷阱！『不繳錢』：合法正規的公司，千萬不會在錄取初期用任何名目預先向求職者收取保證金或費用。", icon: "fa-triangle-exclamation" },
+            6: { text: "防騙陷阱！『不購買』：這往往是「假求職、真直銷」或「假求職真詐騙」的手法，公司無權強迫員工購買自家產品作為錄用條件。", icon: "fa-triangle-exclamation" }
+        };
+
+        let foundTraps = 0;
+        const totalTraps = 4;
+        const sentences = document.querySelectorAll('.sentence');
+        const feedbackArea = document.getElementById('feedbackArea');
+        const scoreDisplay = document.getElementById('score');
+
+        sentences.forEach(sentence => {
+            sentence.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const type = this.getAttribute('data-type');
+                
+                // 如果是第一次點擊，清除提示文字
+                if(feedbackArea.innerHTML.includes('fa-hand-pointer')) {
+                    feedbackArea.innerHTML = '';
+                }
+
+                if (type === 'trap' && !this.classList.contains('found-trap')) {
+                    // 點中陷阱
+                    this.classList.add('found-trap');
+                    foundTraps++;
+                    scoreDisplay.innerText = foundTraps;
+                    
+                    addFeedback(id, 'trap');
+
+                    if (foundTraps === totalTraps) {
+                        setTimeout(() => {
+                            alert('恭喜你通關！你已經具備「防騙七不三要」的要領，不再輕易受騙了！');
+                        }, 500);
+                    }
+                } else if (type === 'safe' && !this.classList.contains('safe')) {
+                    // 點到安全條款
+                    this.classList.add('safe');
+                    addFeedback(id, 'safe');
+                }
+            });
+        });
+
+        function addFeedback(id, type) {
+            const data = feedbackData[id];
+            const card = document.createElement('div');
+            card.className = `feedback-card ${type}`;
+            
+            const titleColor = type === 'trap' ? 'color: var(--accent-color);' : 'color: var(--success-color);';
+            const titleText = type === 'trap' ? '發現陷阱！' : '這是正常規定！';
+
+            card.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px; ${titleColor}">
+                    <i class="fa-solid ${data.icon}"></i> ${titleText}
+                </div>
+                <div>${data.text}</div>
+            `;
+            // 將最新的回饋加到最上面
+            feedbackArea.insertBefore(card, feedbackArea.firstChild);
+        }
+
+        // --- 吉祥物拖曳邏輯 ---
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        mascot.addEventListener('mousedown', dragStart);
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('mousemove', drag);
+
+        // 支援觸控螢幕
+        mascot.addEventListener('touchstart', dragStart, {passive: false});
+        document.addEventListener('touchend', dragEnd);
+        document.addEventListener('touchmove', drag, {passive: false});
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+
+            if (e.target === mascot) {
+                isDragging = true;
+                // 停止預設行為以避免拖曳圖片產生重影
+                e.preventDefault(); 
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>

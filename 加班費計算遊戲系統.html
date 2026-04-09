@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加班費計算遊戲系統</title>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-color: #f5f6fa;
+            --paper-color: #fff9e6;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 80px; /* 給吉祥物空間 */
+        }
+
+        .game-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            width: 100%;
+            max-width: 750px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .game-panel.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .story-box {
+            background-color: var(--paper-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .trap-box {
+            background-color: #fdeaea;
+            border-left: 5px solid var(--accent-color);
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(44, 62, 80, 0.1);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-wrong { border-color: var(--accent-color); color: var(--accent-color); }
+        .btn-wrong:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--accent-color);
+            box-shadow: 0 4px 6px rgba(231, 76, 60, 0.2);
+        }
+
+        .btn-success { border-color: var(--success-color); color: var(--success-color); }
+        .btn-success:hover {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+            box-shadow: 0 4px 6px rgba(39, 174, 96, 0.2);
+        }
+
+        .calculator {
+            background: var(--paper-color);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0d8c3;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input[type="number"] {
+            background: white;
+            border: 1px solid #ccc;
+            color: #333;
+            padding: 10px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            width: 100px;
+            text-align: center;
+            margin: 5px;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .result-screen {
+            background: #eafaf1;
+            color: var(--primary-color);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            text-align: left;
+            border: 1px solid var(--success-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .quiz-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        /* 吉祥物樣式與動畫 - 與找碴遊戲同步 */
+        #mascot {
+            position: fixed;
+            bottom: 60px; /* 避免擋住 footer */
+            left: 20px;
+            width: 120px;
+            cursor: grab;
+            z-index: 9999;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: filter 0.3s ease;
+        }
+
+        #mascot:active {
+            cursor: grabbing;
+        }
+
+        /* 懸停：霓虹彩色發光 + 抖動 */
+        #mascot:hover {
+            animation: neonGlow 1.5s alternate infinite, shake 0.4s infinite;
+        }
+
+        @keyframes neonGlow {
+            0% { filter: drop-shadow(0 0 5px #ff00ff) drop-shadow(0 0 10px #ff00ff); }
+            33% { filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #00ffff); }
+            66% { filter: drop-shadow(0 0 5px #00ff00) drop-shadow(0 0 10px #00ff00); }
+            100% { filter: drop-shadow(0 0 5px #ff0000) drop-shadow(0 0 10px #ff0000); }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .hidden { display: none !important; }
+        .feedback { margin-top: 15px; font-weight: bold; }
+        .highlight { color: var(--accent-color); font-weight: bold; background-color: #fdeaea; padding: 2px 5px; border-radius: 4px; }
+
+        /* ---------------- 教師設定面板 ---------------- */
+        .settings-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            justify-content: center; align-items: center;
+        }
+        .settings-modal {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: left;
+        }
+        .settings-title {
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .settings-group {
+            margin-bottom: 15px;
+        }
+        .settings-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .settings-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .settings-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-save { flex: 1; background: var(--success-color); color: white !important; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { flex: 1; background: #95a5a6; color: white !important; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+
+        .config-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .config-btn:hover { background: rgba(255,255,255,0.4); }
+    </style>
+</head>
+<body>
+
+    <header style="position: relative;">
+        <h1><i class="fas fa-coins"></i> 加班費計算遊戲系統</h1>
+        <button class="config-btn" onclick="openSettings()"><i class="fa-solid fa-gear"></i> 教師設定</button>
+    </header>
+
+    <!-- 設定面板彈窗 -->
+    <div class="settings-overlay" id="settings-overlay">
+        <div class="settings-modal">
+            <h3 class="settings-title"><i class="fa-solid fa-screwdriver-wrench"></i> 教師模式：工資設定</h3>
+            <div class="settings-group">
+                <label>最新月薪基本工資 (元)</label>
+                <input type="number" id="input-monthly-wage" value="29500">
+            </div>
+            <div class="settings-group">
+                <label>最新時薪基本工資 (元)</label>
+                <input type="number" id="input-hourly-wage" value="196">
+            </div>
+            <div class="settings-btns">
+                <button class="btn-save" onclick="saveSettings()">儲存設定</button>
+                <button class="btn-cancel" onclick="closeSettings()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="game-container">
+        
+        <!-- Level 1: 時間陷阱 -->
+        <div id="level1" class="game-panel active">
+            <h2><i class="fas fa-stopwatch"></i> 關卡 1：不到一小時的陷阱</h2>
+            <div class="story-box">
+                <p>飲料店打烊了，店長對你說：「今天滿地都是珍珠，你多留 <span class="highlight">30 分鐘</span> 幫忙刷地吧！不過不滿一小時就不算加班費囉，當作幫忙啦！」</p>
+            </div>
+            <p><strong>提問：</strong>法律上，加班不滿一小時真的可以不給錢嗎？</p>
+            <div>
+                <button class="btn" onclick="showFeedback('l1-fb', '大錯特錯！勞動部說只要有出勤，就必須照「分鐘」比例給付！', 'var(--accent-color)')">沒辦法，最小單位就是小時，只好摸摸鼻子當作做善事～</button>
+                <button class="btn" onclick="nextLevel(1)">拒絕！加班費就是要計較精算到「分鐘」！</button>
+            </div>
+            <div id="l1-fb" class="feedback"></div>
+        </div>
+
+        <!-- Level 2: 倍率與違法小數點 -->
+        <div id="level2" class="game-panel">
+            <h2><i class="fas fa-exclamation-triangle"></i> 關卡 2：老闆的「圖方便」魔法</h2>
+            <div class="story-box">
+                <p>💡 <strong>平日加班法定倍率：</strong></p>
+                <ul>
+                    <li>第 1~2 小時：時薪加給 1/3 以上（實務用 <span class="highlight">1.34</span> 倍）</li>
+                    <li>第 3~4 小時：時薪加給 2/3 以上（實務用 <span class="highlight">1.67</span> 倍）</li>
+                </ul>
+            </div>
+            <div class="trap-box">
+                <p><i class="fas fa-skull"></i> <strong>老闆說：</strong>「1.34 太難算了，我財務圖個方便，統一用 <strong>1.33</strong> 和 <strong>1.66</strong> 幫你算加班費可以吧？」</p>
+            </div>
+            <div>
+                <button class="btn quiz-option" onclick="showFeedback('l2-fb', '不行！少給 0.01 倍也是違法！倍率必須「無條件進位」。', 'var(--accent-color)')">A. 差一點點而已，法規上屬於可以接受的範圍。</button>
+                <button class="btn quiz-option" onclick="nextLevel(2)">B. 違法！法定是加給三分之一，1.33 算出來會少給，絕對不行！</button>
+            </div>
+            <div id="l2-fb" class="feedback"></div>
+        </div>
+
+        <!-- Level 3: 津貼陷阱與計算機-->
+        <div id="level3" class="game-panel">
+            <h2><i class="fas fa-calculator"></i> 關卡 3：薪資黑洞與實戰計算機</h2>
+            
+            <div id="salary-trap">
+                <div class="story-box">
+                    <p>你的底薪是 30,000 元，但每個月還有全勤、交通津貼 6,000 元，總共領 36,000 元。</p>
+                    <p><strong>提問：</strong>老闆算加班費時，應該用哪一個數字去換算你的時薪？</p>
+                </div>
+                <button class="btn" onclick="showFeedback('l3-fb1', '錯！津貼屬於「經常性給與」，也算工資的一部分，必須全部納入計算！', 'var(--accent-color)')">用底薪 30,000 算！</button>
+                <button class="btn" onclick="unlockCalculator()">用總薪資 36,000 算！</button>
+                <div id="l3-fb1" class="feedback"></div>
+            </div>
+
+            <div id="calculator-section" class="hidden">
+                <h3 style="color:var(--primary-color); margin-top:20px;">⚡ 最新法定加班計算機 (最低時薪 <span class="dynamic-hourly-wage">196</span> 元起)</h3>
+                <div class="calculator">
+                    時薪：<input type="number" id="baseWage" value="196"> 元<br><br>
+                    平日加班：<input type="number" id="otHours" value="3" min="0.5" step="0.5"> 小時
+                    <br><br>
+                    <button class="btn btn-success" onclick="calculateOt()"><i class="fas fa-magic"></i> 自動核算</button>
+                    <div id="calc-result" class="result-screen hidden"></div>
+                </div>
+                <button class="btn" style="width:100%; margin-top:10px;" onclick="nextLevel(3)">前往下一關 <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Level 4: 隱形加班陷阱 (下班後收LINE) -->
+        <div id="level4" class="game-panel">
+            <h2><i class="fas fa-mobile-alt"></i> 關卡 4：下班後的隱形加班</h2>
+            <div class="story-box">
+                <p>你剛打卡下班回到家，老闆突然傳 LINE：「那個宣傳海報少一個數字，你現在馬上幫我開電腦改一下，明天一早開會要用！」</p>
+            </div>
+            <div class="trap-box">
+                <p><i class="fas fa-ghost"></i> <strong>主管心聲：</strong>「只是用手機或電腦處理一下而已，又沒在公司，不算加班啦！」</p>
+            </div>
+            <p><strong>提問：</strong>這種情況下，你可以要加班費嗎？</p>
+            <div>
+                <button class="btn quiz-option" onclick="showFeedback('l4-fb', '錯！只要有實際動手工作，就是加班！', 'var(--accent-color)')">A. 既然已經離開公司打卡了，只能算免費幫忙。</button>
+                <button class="btn quiz-option" onclick="nextLevel(4)">B. 當然算！只要主管交辦具體任務且「實際動手完成」，記得截圖保留證據要錢！</button>
+            </div>
+            <div id="l4-fb" class="feedback"></div>
+        </div>
+
+        <!-- Level 5: 核心檢核 (Boss戰) -->
+        <div id="level5" class="game-panel">
+            <h2><i class="fas fa-khanda"></i> Boss戰：勞檢神挑戰</h2>
+            
+            <div id="q1-box">
+                <p><strong>Q1【試用期陷阱】：雇主在合約寫「試用期員工不給加班費」，合法嗎？</strong></p>
+                <button class="btn quiz-option" onclick="checkBoss(1, false)">A. 合法，雙方簽名同意就有效。</button>
+                <button class="btn quiz-option" onclick="checkBoss(1, true)">B. 違法！試用期勞工享有的權利跟正式員工一模一樣！</button>
+            </div>
+            
+            <div id="q2-box" class="hidden">
+                <p><strong>Q2【國定假日陷阱】：中秋節當天，老闆請你來店裡「幫忙 1 小時」就讓你回家，薪水怎麼算？</strong></p>
+                <button class="btn quiz-option" onclick="checkBoss(2, false)">A. 給 1 小時的雙倍薪水。</button>
+                <button class="btn quiz-option" onclick="checkBoss(2, true)">B. 直接給足「一整天 (8小時)」的工資！因為你的假期已經被破壞了。</button>
+            </div>
+            
+            <div id="q3-box" class="hidden">
+                <p><strong>Q3【例假日陷阱】：「例假日(通常是週日)」太忙，老闆要求你來加班，並承諾給雙倍薪，可以嗎？</strong></p>
+                <button class="btn quiz-option" onclick="checkBoss(3, false)">A. 可以，只要老闆肯給雙倍薪水加補休就可以。</button>
+                <button class="btn quiz-option" onclick="checkBoss(3, true)">B. 不行！例假日是「強制休息」，除非發生天災或突發重大事故，否則根本不能叫員工上班！</button>
+            </div>
+
+            <div id="q4-box" class="hidden">
+                <p><strong>Q4【補休陷阱】：公司規定「我們公司一律只給補休，不發加班費」，合法嗎？</strong></p>
+                <button class="btn quiz-option" onclick="checkBoss(4, true)">A. 違法！是否換補休必須「勞工本人同意」，選擇權在你手上。</button>
+                <button class="btn quiz-option" onclick="checkBoss(4, false)">B. 合法，公司內規最大。</button>
+            </div>
+
+            <div id="boss-fb" class="feedback"></div>
+        </div>
+
+        <!-- Level 6: 總結 -->
+        <div id="level6" class="game-panel" style="text-align: center;">
+            <h2><i class="fas fa-trophy"></i> 恭喜通關！成為勞基法大師</h2>
+            <div class="story-box" style="font-size: 1.15rem; text-align: left;">
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>精算到分鐘：</strong> 不滿一小時也要照比例算錢。</p>
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>倍率不能吃虧：</strong> 平日前二 1.34，後二 1.67，1.33是違法的！</p>
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>底薪＋津貼：</strong> 計算時薪要用完整薪資。</p>
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>下班傳 LINE：</strong> 只要有實際處理公事就是加班！</p>
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>國定假出勤：</strong> 上 1 小時也要付你 8 小時薪水！</p>
+                <p><i class="fas fa-check-circle" style="color: var(--success-color);"></i> <strong>例假日不可侵犯：</strong> 除非天災，否則不能強迫週日(例假日)出勤。</p>
+            </div>
+            <p>記住這些「防雷」護身符，以後出社會絕對不吃虧！</p>
+            <button class="btn btn-success" onclick="location.reload()"><i class="fas fa-redo"></i> 再玩一次</button>
+        </div>
+
+    </main>
+
+    <!-- 吉祥物 -->
+    <img id="mascot" src="image/LiyuChillGuy.svg" alt="吉祥物" draggable="false">
+
+    <footer>
+        Copyright © Liyuchiutiger Gongminshen
+    </footer>
+
+    <script>
+        // --- 教師設定與工資系統 ---
+        let wageConfig = {
+            monthly: 29500,
+            hourly: 196
+        };
+
+        function loadSettings() {
+            const saved = localStorage.getItem('labor_wage_config');
+            if (saved) {
+                wageConfig = JSON.parse(saved);
+            }
+            updateWageUI();
+        }
+
+        function updateWageUI() {
+            // 更新看板文字與計算機預設值
+            document.querySelectorAll('.dynamic-hourly-wage').forEach(el => {
+                el.innerText = wageConfig.hourly;
+            });
+            document.getElementById('baseWage').value = wageConfig.hourly;
+
+            // 更新設定輸入框
+            document.getElementById('input-monthly-wage').value = wageConfig.monthly;
+            document.getElementById('input-hourly-wage').value = wageConfig.hourly;
+        }
+
+        function openSettings() {
+            document.getElementById('settings-overlay').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function saveSettings() {
+            const m = parseInt(document.getElementById('input-monthly-wage').value);
+            const h = parseInt(document.getElementById('input-hourly-wage').value);
+            
+            if (isNaN(m) || isNaN(h)) {
+                alert("請輸入有效的數字！");
+                return;
+            }
+
+            wageConfig.monthly = m;
+            wageConfig.hourly = h;
+            
+            localStorage.setItem('labor_wage_config', JSON.stringify(wageConfig));
+            updateWageUI();
+            closeSettings();
+            alert("薪資設定已更新！遊戲內容已同步調整。");
+        }
+
+        // 頁面載入時初始化
+        window.addEventListener('load', loadSettings);
+
+        // 關卡切換邏輯
+        function nextLevel(current) {
+            document.getElementById(`level${current}`).classList.remove('active');
+            document.getElementById(`level${current + 1}`).classList.add('active');
+        }
+
+        function showFeedback(id, text, color) {
+            const fb = document.getElementById(id);
+            fb.innerText = text;
+            fb.style.color = color;
+        }
+
+        function unlockCalculator() {
+            document.getElementById('salary-trap').classList.add('hidden');
+            document.getElementById('calculator-section').classList.remove('hidden');
+        }
+
+        // 平日加班計算邏輯 (分段計算)
+        function calculateOt() {
+            const wage = parseInt(document.getElementById('baseWage').value);
+            const hours = parseFloat(document.getElementById('otHours').value);
+            const resScreen = document.getElementById('calc-result');
+            
+            if (isNaN(wage) || isNaN(hours) || hours <= 0) {
+                resScreen.innerHTML = "請輸入正確的數字！";
+                resScreen.classList.remove('hidden');
+                return;
+            }
+
+            if (wage < wageConfig.hourly) {
+                alert(`提醒您：目前您設定的法定最低時薪為 ${wageConfig.hourly} 元喔！`);
+            }
+
+            let totalOtPay = 0;
+            let log = `【平日加班 ${hours} 小時計算明細】<br>`;
+
+            // 前兩小時 (1.34)
+            let tier1Hours = Math.min(2, hours);
+            let tier1Pay = Math.ceil(wage * 1.34 * tier1Hours); // 實務上無條件進位
+            totalOtPay += tier1Pay;
+            log += `▶ 第 1~2 小時：${wage} × 1.34 × ${tier1Hours}h = <strong style="color:var(--primary-color)">${tier1Pay}</strong> 元<br>`;
+
+            // 第3~4小時 (1.67)
+            if (hours > 2) {
+                let tier2Hours = Math.min(2, hours - 2);
+                let tier2Pay = Math.ceil(wage * 1.67 * tier2Hours);
+                totalOtPay += tier2Pay;
+                log += `▶ 第 3~4 小時：${wage} × 1.67 × ${tier2Hours}h = <strong style="color:var(--primary-color)">${tier2Pay}</strong> 元<br>`;
+            }
+
+            // 超過4小時
+            if (hours > 4) {
+                log += `<span style="color:var(--accent-color)">⚠ 注意：平日加班超過 4 小時雇主極可能已違反勞基法第32條！</span><br>`;
+            }
+
+            log += `<hr style="border-color:#ccc;">`;
+            log += `<strong>總加班費： <span style="color:var(--success-color); font-size:1.5rem;">${totalOtPay}</span> 元</strong>`;
+            
+            resScreen.innerHTML = log;
+            resScreen.classList.remove('hidden');
+        }
+
+        // Boss戰邏輯
+        function checkBoss(qNum, isCorrect) {
+            const fb = document.getElementById('boss-fb');
+            if (!isCorrect) {
+                fb.innerHTML = "<i class='fas fa-times-circle'></i> 哎呀！踩到地雷了，再仔細想想！";
+                fb.style.color = "var(--accent-color)";
+                return;
+            }
+            
+            fb.innerHTML = "<i class='fas fa-check-circle'></i> 觀念正確！";
+            fb.style.color = "var(--success-color)";
+            
+            setTimeout(() => {
+                fb.innerText = "";
+                document.getElementById(`q${qNum}-box`).classList.add('hidden');
+                if (qNum < 4) {
+                    document.getElementById(`q${qNum + 1}-box`).classList.remove('hidden');
+                } else {
+                    nextLevel(5); // 進入Level 6總結頁面
+                }
+            }, 1200);
+        }
+
+        // 吉祥物拖曳邏輯 (完全保留)
+        const mascot = document.getElementById('mascot');
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        mascot.addEventListener("mousedown", dragStart);
+        document.addEventListener("mouseup", dragEnd);
+        document.addEventListener("mousemove", drag);
+        mascot.addEventListener("touchstart", dragStart, { passive: false });
+        document.addEventListener("touchmove", drag, { passive: false });
+        document.addEventListener("touchend", dragEnd);
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            if (e.target === mascot) { isDragging = true; }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                } else {
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                }
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, mascot);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+    </script>
+</body>
+</html>
