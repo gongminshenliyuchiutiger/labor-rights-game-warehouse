@@ -158,11 +158,36 @@
 
     /* --- 版權頁尾 --- */
     .footer {
-        position: absolute; bottom: 10px; width: 100%;
-        text-align: center; color: rgba(255, 255, 255, 0.6);
-        font-size: 12px; letter-spacing: 1px;
-        text-shadow: 0 1px 2px #000;
-        pointer-events: auto; z-index: 25;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        padding: 5px 0;
+        margin-top: auto;
+        font-size: 13px;
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        z-index: 25;
+        pointer-events: auto;
+    }
+
+    .footer-link {
+        display: inline-block;
+        color: #fff;
+        text-decoration: none;
+        font-weight: bold;
+        margin-bottom: 2px;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 5px 15px;
+        border-radius: 8px;
+    }
+
+    .footer-link:hover {
+        color: var(--c-gold);
+        transform: translateY(-5px) scale(1.05);
+        background: rgba(255, 255, 255, 0.05);
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
 
     /* 手機適配 */
@@ -241,7 +266,7 @@
             <h1><i class="fa-solid fa-shield-halved"></i> 求職防騙七不三要</h1>
             <p style="text-align: left; font-size: 1rem;">
                 <span class="heal-text">【三要】捕捉以得分：</span><br>
-                <i class="fa-solid fa-magnifying-glass"></i> 資訊屬實、<i class="fa-solid fa-folder-open"></i> 蒐集資料、<i class="fa-solid fa-users"></i> 親友陪同面試<br><br>
+                <i class="fa-solid fa-magnifying-glass"></i> 要確定、<i class="fa-solid fa-folder-open"></i> 要存疑、<i class="fa-solid fa-users"></i> 要陪同<br><br>
                 <span class="danger-text">【七不】避開陷阱免扣血：</span><br>
                 <i class="fa-solid fa-money-bill"></i> 不繳錢、<i class="fa-solid fa-bag-shopping"></i> 不購買、<i class="fa-solid fa-credit-card"></i> 不辦卡、<i class="fa-solid fa-file-signature"></i> 不簽約、<br>
                 <i class="fa-solid fa-id-card"></i> 證件不隨意交出、<i class="fa-solid fa-glass-whiskey"></i> 不喝不明飲、<i class="fa-solid fa-ban"></i> 不非法工作<br><br>
@@ -370,9 +395,9 @@
                 
                 // 三要 (加分)
                 const threeDos = [
-                    { icon: '\uf002', label: '資訊屬實' }, // fa-magnifying-glass
-                    { icon: '\uf07c', label: '蒐集資料' }, // fa-folder-open
-                    { icon: '\uf0c0', label: '親友陪同' }  // fa-users
+                    { icon: '\uf002', label: '要確定' }, // fa-magnifying-glass
+                    { icon: '\uf07c', label: '要存疑' }, // fa-folder-open
+                    { icon: '\uf0c0', label: '要陪同' }  // fa-users
                 ];
                 
                 // 七不 (扣血)
