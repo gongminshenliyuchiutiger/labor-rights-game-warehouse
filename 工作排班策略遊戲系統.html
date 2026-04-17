@@ -18,13 +18,15 @@
         }
 
         body {
-            font-family: '微軟正黑體', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
+            color: #333;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         header {
@@ -35,9 +37,48 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 40px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        .footer-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .footer-link:hover {
+            color: #f1c40f;
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #mascot { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 30px; 
+            width: 100px; 
+            z-index: 1000; 
+            cursor: pointer; 
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1)); 
+            transition: transform 0.3s ease;
+        }
+
         header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: clamp(1.2rem, 5vw, 28px);
         }
 
         .main-container {
@@ -246,9 +287,24 @@
             background-color: var(--primary-color);
             color: #bdc3c7;
             text-align: center;
-            padding: 15px 0;
+            padding: 20px 0;
             margin-top: auto;
             font-size: 14px;
+        }
+
+        .footer-links {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            #mascot { display: none; }
+            .week-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         /* 吉祥物 */
@@ -395,7 +451,12 @@
     </div>
 
     <footer>
-        Copyright &copy; Liyuchiutiger Gongminshen
+        <div class="footer-links">
+            <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" class="footer-link">
+                <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+            </a>
+        </div>
+        <p>Copyright &copy; Liyuchiutiger Gongminshen</p>
     </footer>
 
     <!-- 吉祥物 -->

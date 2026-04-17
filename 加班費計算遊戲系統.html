@@ -30,6 +30,8 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         header {
@@ -42,7 +44,7 @@
 
         header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: clamp(1.2rem, 5vw, 28px);
             font-weight: bold;
         }
 
@@ -191,22 +193,45 @@
             background-color: var(--primary-color);
             color: #bdc3c7;
             text-align: center;
-            padding: 15px 0;
+            padding: 40px 0;
             margin-top: auto;
             font-size: 14px;
         }
 
+        .footer-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .footer-link:hover {
+            color: #f1c40f;
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 600px) {
+            #mascot { display: none; }
+            .calc-grid { grid-template-columns: 1fr; }
+        }
+
         /* 吉祥物樣式與動畫 - 與找碴遊戲同步 */
-        #mascot {
-            position: fixed;
-            bottom: 60px; /* 避免擋住 footer */
-            left: 20px;
-            width: 120px;
-            cursor: grab;
-            z-index: 9999;
-            user-select: none;
-            -webkit-user-drag: none;
-            transition: filter 0.3s ease;
+        #mascot { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 30px; 
+            width: 100px; 
+            z-index: 100; 
+            cursor: pointer; 
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1)); 
+            transition: transform 0.3s ease;
         }
 
         #mascot:active {
@@ -465,7 +490,12 @@
     <img id="mascot" src="image/LiyuChillGuy.svg" alt="吉祥物" draggable="false">
 
     <footer>
-        Copyright © Liyuchiutiger Gongminshen
+        <div class="footer-links">
+            <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" class="footer-link">
+                <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+            </a>
+        </div>
+        <p>Copyright &copy; Liyuchiutiger Gongminshen</p>
     </footer>
 
     <script>

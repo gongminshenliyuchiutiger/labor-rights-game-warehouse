@@ -274,8 +274,10 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            transition: var(--transition);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 12px;
         }
 
         .fb-link a i {
@@ -284,15 +286,25 @@
 
         .fb-link a:hover {
             color: var(--c-gold);
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(-8px) scale(1.08);
         }
 
         @media (max-width: 768px) {
-            .container { padding: 20px; }
-            h1 { font-size: 2.5rem; }
+            .container { padding: 20px 15px; }
+            h1 { font-size: clamp(1.8rem, 8vw, 2.5rem); }
             .game-grid { grid-template-columns: 1fr; }
             .mascot-container { width: 100px; bottom: 20px; left: 20px; }
+            .mascot-container.dragging { display: none; } /* Hide during drag on mobile to avoid issues */
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; }
+            .subtitle { font-size: 0.9rem; letter-spacing: 1px; }
+            .fb-link a { font-size: 0.9rem; }
+            .fb-link a i { font-size: 1.4rem; }
         }
     </style>
 </head>
@@ -316,7 +328,7 @@
 
         <footer>
             <div class="fb-link">
-                <a href="https://www.facebook.com/happyliyuchilltiger" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" rel="noopener noreferrer">
                     <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
                 </a>
             </div>
@@ -420,6 +432,30 @@
                 file: "一例一休工作日排程遊戲系統.html",
                 icon: "fa-clock",
                 desc: "深入了解一例一休規範，完美規畫符合法規的工作時程。"
+            },
+            {
+                title: "權利與調整事項神分辨",
+                file: "權利與調整事項神分辨遊戲系統.html",
+                icon: "fa-scale-unbalanced-flip",
+                desc: "精密區分【權利事項】與【調整事項】，掌握集體勞動關係中解決爭議的核心法則。"
+            },
+            {
+                title: "工會多型態分類",
+                file: "工會多型態分類遊戲系統.html",
+                icon: "fa-sitemap",
+                desc: "學習分辨【企業、產業、職業、聯合組織】四種工會類型，了解勞工團結權的組織形式。"
+            },
+            {
+                title: "罷工偏見神破除",
+                file: "罷工偏見神破除遊戲系統.html",
+                icon: "fa-hand-back-fist",
+                desc: "分辨罷工行為中的迷思與事實，破除社會偏見，建立正確的集體勞權認知。"
+            },
+            {
+                title: "工會做什麼神解析",
+                file: "工會做什麼神解析遊戲系統.html",
+                icon: "fa-handshake-angle",
+                desc: "認識工會在職場中的多元正面功能，瞭解除了集體抗爭之外，工會如何全方位守護勞工日常。"
             }
         ];
 

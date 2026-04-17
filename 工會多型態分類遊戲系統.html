@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工會多型態分類遊戲系統</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="透過案例情境學習分辨台灣法律規定的企業、產業、職業及聯合組織工會，掌握勞動教育與團結權核心知識。">
+    <meta name="author" content="Liyuchiutiger Gongminshen">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --bg-color: #f5f6fa;
+            --c-enterprise: #3498db;
+            --c-industrial: #9b59b6;
+            --c-professional: #e67e22;
+            --c-federation: #27ae60;
+            --c-gold: #f39c12;
+            --c-panel: #ffffff;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #333;
+            font-family: 'Noto Sans TC', 'Outfit', sans-serif;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .instruction-bar {
+            background: #fff;
+            padding: 12px;
+            font-size: 0.95rem;
+            color: #666;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            border-left: 5px solid var(--c-professional);
+        }
+
+        .game-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 20px;
+            position: relative;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 600px;
+            height: 200px;
+            perspective: 1000px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .case-card {
+            width: 100%;
+            height: 100%;
+            background: var(--c-panel);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px 40px;
+            box-shadow: var(--shadow);
+            cursor: grab;
+            transition: transform 0.1s, box-shadow 0.3s;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .case-card:active { cursor: grabbing; }
+        .case-card.dragging {
+            opacity: 0.9;
+            transform: scale(1.05);
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .case-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--c-gold);
+        }
+
+        .case-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.5;
+            color: var(--primary-color);
+        }
+
+        .zones-container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .drop-zone {
+            height: 160px;
+            border-radius: 20px;
+            background: #fff;
+            border: 2px dashed #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* 顏色對應 */
+        .h-enterprise { border-color: var(--c-enterprise); }
+        .h-industrial { border-color: var(--c-industrial); }
+        .h-professional { border-color: var(--c-professional); }
+        .h-federation { border-color: var(--c-federation); }
+
+        .drop-zone.hover { transform: scale(1.05); }
+        .drop-zone.hover.h-enterprise { background-color: rgba(52, 152, 219, 0.1); }
+        .drop-zone.hover.h-industrial { background-color: rgba(155, 89, 182, 0.1); }
+        .drop-zone.hover.h-professional { background-color: rgba(230, 126, 34, 0.1); }
+        .drop-zone.hover.h-federation { background-color: rgba(39, 174, 96, 0.1); }
+
+        .zone-icon { font-size: 2rem; margin-bottom: 8px; }
+        .h-enterprise .zone-icon { color: var(--c-enterprise); }
+        .h-industrial .zone-icon { color: var(--c-industrial); }
+        .h-professional .zone-icon { color: var(--c-professional); }
+        .h-federation .zone-icon { color: var(--c-federation); }
+
+        .zone-label { font-weight: 900; font-size: 1.15rem; color: var(--primary-color); }
+        .zone-desc { font-size: 0.75rem; color: #888; margin-top: 5px; line-height: 1.2; }
+
+        .game-stats { position: fixed; top: 140px; right: 40px; z-index: 5; }
+        .stat-item { background: #fff; padding: 10px 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-right: 5px solid var(--c-gold); margin-bottom: 15px; text-align: right; }
+        .stat-label { font-size: 0.75rem; font-weight: 700; color: #999; }
+        .stat-value { font-size: 2rem; font-weight: 900; color: var(--primary-color); font-family: 'Outfit'; }
+
+        .feedback-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .feedback-content { background: #fff; padding: 40px; border-radius: 30px; max-width: 600px; width: 90%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes pop-in { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .feedback-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 20px; }
+        .feedback-text { font-size: 1.15rem; line-height: 1.8; margin-bottom: 30px; color: #444; text-align: left; background: #f9f9f9; padding: 20px; border-radius: 15px; border-left: 8px solid var(--c-enterprise); }
+        .btn-next { background: var(--primary-color); color: #fff; border: none; padding: 15px 50px; border-radius: 50px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: var(--transition); }
+        .btn-next:hover { transform: translateY(-3px); filter: brightness(1.2); }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        .footer-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--c-gold);
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #mascot { position: fixed; bottom: 60px; left: 30px; width: 100px; z-index: 20; cursor: move; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1)); }
+
+        @media (max-width: 992px) {
+            .zones-container { grid-template-columns: 1fr 1fr; }
+            .game-stats { position: relative; top: 0; right: 0; display: flex; justify-content: center; gap: 20px; margin-bottom: 10px; }
+            .stat-item { padding: 5px 15px; margin-bottom: 0; }
+            .stat-value { font-size: 1.5rem; }
+        }
+        @media (max-width: 600px) {
+            .zones-container { grid-template-columns: 1fr; }
+            #mascot { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-sitemap"></i> 工會多型態分類遊戲系統</h1>
+    </header>
+
+    <div class="instruction-bar">
+        根據「案例情境」內容，判斷最符合哪一種工會組織型態，並將卡片拖入正確區域。
+    </div>
+
+    <div class="game-stats">
+        <div class="stat-item">
+            <p class="stat-label">進度</p>
+            <p class="stat-value" id="progress">1/16</p>
+        </div>
+        <div class="stat-item" style="border-right-color: var(--c-federation);">
+            <p class="stat-label">得分</p>
+            <p class="stat-value" id="score">0</p>
+        </div>
+    </div>
+
+    <main class="game-main">
+        <div class="card-container">
+            <div id="case-card" class="case-card">
+                <div class="case-icon"><i class="fas fa-building"></i></div>
+                <div class="case-text" id="case-text">台積電工程師組成了權益爭取團體。</div>
+            </div>
+        </div>
+
+        <div class="zones-container">
+            <!-- 依使用者要求排列順序 -->
+            <div id="zone-professional" class="drop-zone h-professional" data-type="professional">
+                <i class="fas fa-tools zone-icon"></i>
+                <div class="zone-label">職業工會</div>
+                <div class="zone-desc">具相同職業技能之勞工組合</div>
+            </div>
+            <div id="zone-enterprise" class="drop-zone h-enterprise" data-type="enterprise">
+                <i class="fas fa-building-user zone-icon"></i>
+                <div class="zone-label">企業工會</div>
+                <div class="zone-desc">同一公司、廠場或學校之員工</div>
+            </div>
+            <div id="zone-industrial" class="drop-zone h-industrial" data-type="industrial">
+                <i class="fas fa-industry zone-icon"></i>
+                <div class="zone-label">產業工會</div>
+                <div class="zone-desc">相關產業內各職位之勞工組合</div>
+            </div>
+            <div id="zone-federation" class="drop-zone h-federation" data-type="federation">
+                <i class="fas fa-layer-group zone-icon"></i>
+                <div class="zone-label">聯合組織總工會</div>
+                <div class="zone-desc">工會或聯合組織再次聯合組成</div>
+            </div>
+        </div>
+    </main>
+
+    <div id="feedback-overlay" class="feedback-overlay">
+        <div class="feedback-content">
+            <div id="feedback-title" class="feedback-title">正確！</div>
+            <div id="feedback-text" class="feedback-text">解說內容...</div>
+            <button id="btn-next" class="btn-next">下一個案例 <i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" class="footer-link">
+                <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+            </a>
+        </div>
+        <p>Copyright © Liyuchiutiger Gongminshen</p>
+    </footer>
+
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <script>
+        const originalCases = [
+            // 職業工會 (相同技能)
+            { 
+                text: "一群在桃園地區工作且擁有機師執照的專業人員，不分航空公司，共同組織了專業團體。", 
+                type: "professional", 
+                icon: "fa-plane-up", 
+                exp: "這是【職業工會】。其特徵是『相同的職業技能』（機師），即使服務於不同航空公司仍可共同組織。" 
+            },
+            { 
+                text: "平時承包各大建案泥水施作的師傅們，為了辦理勞保與技能交流，共同在區域內組織了團體。", 
+                type: "professional", 
+                icon: "fa-trowel-bricks", 
+                exp: "這是【職業工會】。泥水師傅具有『相同職業技能』，這類組織常見於無固定僱主的自由職業者。" 
+            },
+            { 
+                text: "在不同外送平台接案的跑腿員，因面臨相似的交通風險且技能相同，決定跨平台集結保障權益。", 
+                type: "professional", 
+                icon: "fa-motorcycle", 
+                exp: "這是【職業工會】。外送員是以『相同職業技能』為核心連結的跨平台勞工組織。" 
+            },
+            { 
+                text: "一群從事自由接案的視覺設計師，為了討論公定報價、避免削價競爭，共同在網路社群發起組織。", 
+                type: "professional", 
+                icon: "fa-palette", 
+                exp: "這是【職業工會】。重點在於『專業技能』，成員多為自營作業者或接案職人。" 
+            },
+
+            // 企業工會 (同一單位)
+            { 
+                text: "台積電新竹廠的全體工程師與技術員，為了更有效率地與公司高層協商加班費新制而組成的單位。", 
+                type: "enterprise", 
+                icon: "fa-microchip", 
+                exp: "這是【企業工會】。對象是『同一事業單位』（台積電公司）內的所有勞工。" 
+            },
+            { 
+                text: "中華電信分布在台北、台中、高雄各據點的員工，共同成立了一個能代表全體同仁對抗減薪的組織。", 
+                type: "enterprise", 
+                icon: "fa-phone-volume", 
+                exp: "這是【企業工會】。即便工作地點不同，但隸屬於『同一事業單位』體系即屬此類。" 
+            },
+            { 
+                text: "某私立大學的全體教授、行政人員與約聘助理，共同在校園內集結，希望要求薪資調整透明化。", 
+                type: "enterprise", 
+                icon: "fa-school", 
+                exp: "這是【企業工會】。工會法規定『同一學校』之勞工（包含教職與職員）可組織企業工會。" 
+            },
+            { 
+                text: "長榮航空內部的飛機維修工程師與航勤人員，針對公司內部的升遷獎勵制度共同組成的發聲團體。", 
+                type: "enterprise", 
+                icon: "fa-screwdriver-wrench", 
+                exp: "這是【企業工會】。特徵是組織成員皆服務於『長榮航空』這個特定的企業體。" 
+            },
+
+            // 產業工會 (相關產業)
+            { 
+                text: "不分品牌，在全台灣百貨公司、連鎖超市工作的收銀與理貨人員共同集結，目標是改善零售業待遇。", 
+                type: "industrial", 
+                icon: "fa-cart-shopping", 
+                exp: "這是【產業工會】。其成員來自整個『零售產業』，打破個別公司的藩籬互助團結。" 
+            },
+            { 
+                text: "來自各大醫院的醫師、護士及醫事行政人員共同組成，希望爭取提高全台灣整體醫療服務的資源。", 
+                type: "industrial", 
+                icon: "fa-user-nurse", 
+                exp: "這是【產業工會】。成員涵蓋醫療『產業』內不同職能的員工，共同爭取產業勞權。" 
+            },
+            { 
+                text: "在各大銀行、保險與證券公司服務的白領勞工，為了反映金融業高壓工時問題而建立的跨行團體。", 
+                type: "industrial", 
+                icon: "fa-comment-dollar", 
+                exp: "這是【產業工會】。其組織對象是整個金融金融『產業』的相關從業人員。" 
+            },
+            { 
+                text: "全台鋼鐵廠的工人們，不論原本在國營還是民營鋼鐵公司，為了要求高溫環境法規升級而聯合組成的群體。", 
+                type: "industrial", 
+                icon: "fa-fire-burner", 
+                exp: "這是【產業工會】。重點在於『鋼鐵產業』這個範圍，成員並不限於同一家公司。" 
+            },
+
+            // 聯合組織總工會 (工會聚合)
+            { 
+                text: "這是一個由全國 50 幾個基層『職業工會』共同派代表、匯整各方資源後建立的全國性最高指揮部。", 
+                type: "federation", 
+                icon: "fa-flag", 
+                exp: "這是【聯合組織總工會】。它是由許多『基層工會』再行組織而成的聯合層級。" 
+            },
+            { 
+                text: "新北市境內的 20 多個『企業工會』為了整合力量向市府談判，共同組成了一個代表地方的集體團體。", 
+                type: "federation", 
+                icon: "fa-city", 
+                exp: "這是【聯合組織總工會】。這是地方性（縣市級）的工會『聯合體』。" 
+            },
+            { 
+                text: "由全台灣各個大專院校、高國中小的教師工會組織共同向上匯聚，形成一個具全國談判力的聯盟。", 
+                type: "federation", 
+                icon: "fa-chalkboard-user", 
+                exp: "這是【聯合組織總工會】。成員本身就是『工會單位』，而非單一自然人勞工。" 
+            },
+            { 
+                text: "多個不同產業別的工會組織代表聚集，召開正式大會後在首都宣布組成的一個大型勞工權力聯盟。", 
+                type: "federation", 
+                icon: "fa-users-rectangle", 
+                exp: "這是【聯合組織總工會】。它是集結多種工會類型後的『總合性組織』。" 
+            }
+        ];
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let cases = shuffle([...originalCases]);
+        let currentIndex = 0;
+        let score = 0;
+        let isComplete = false;
+
+        const card = document.getElementById('case-card');
+        const cardText = document.getElementById('case-text');
+        const cardIcon = document.querySelector('.case-icon i');
+        const zones = document.querySelectorAll('.drop-zone');
+        const feedbackOverlay = document.getElementById('feedback-overlay');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackText = document.getElementById('feedback-text');
+        const btnNext = document.getElementById('btn-next');
+        const scoreVal = document.getElementById('score');
+        const progressVal = document.getElementById('progress');
+
+        function updateGame() {
+            if (currentIndex >= cases.length) {
+                showFinalResults();
+                return;
+            }
+            const c = cases[currentIndex];
+            cardText.innerText = c.text;
+            cardIcon.className = `fas ${c.icon}`;
+            progressVal.innerText = `${currentIndex + 1}/${cases.length}`;
+            card.style.transform = `translate(0, 0)`;
+            card.style.opacity = '1';
+        }
+
+        function showFinalResults() {
+            isComplete = true;
+            feedbackOverlay.style.display = 'flex';
+            feedbackTitle.innerText = "🎊 挑戰完成！";
+            feedbackTitle.style.color = "var(--c-federation)";
+            feedbackText.innerText = `你在 ${cases.length} 個情境中正確辨識了 ${score} 個類型！\n你現在完全掌握台灣工會的複雜結構了！`;
+            btnNext.innerText = "回首頁";
+            btnNext.onclick = () => window.location.href = 'index.html';
+        }
+
+        let startX, startY;
+        let currentX = 0, currentY = 0;
+        let dragging = false;
+
+        card.addEventListener('mousedown', startDrag);
+        card.addEventListener('touchstart', startDrag, { passive: false });
+
+        function startDrag(e) {
+            if (isComplete) return;
+            dragging = true;
+            card.classList.add('dragging');
+            const touch = e.type === 'touchstart' ? e.touches[0] : e;
+            startX = touch.clientX;
+            startY = touch.clientY;
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function handleMove(e) {
+            if (!dragging) return;
+            if (e.type === 'touchmove') e.preventDefault();
+            const touch = e.type === 'touchmove' ? e.touches[0] : e;
+            currentX = touch.clientX - startX;
+            currentY = touch.clientY - startY;
+            card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${currentX * 0.05}deg)`;
+            checkHover(touch.clientX, touch.clientY);
+        }
+
+        function checkHover(x, y) {
+            zones.forEach(zone => {
+                const rect = zone.getBoundingClientRect();
+                if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+                    zone.classList.add('hover');
+                } else {
+                    zone.classList.remove('hover');
+                }
+            });
+        }
+
+        function stopDrag(e) {
+            if (!dragging) return;
+            dragging = false;
+            card.classList.remove('dragging');
+            document.removeEventListener('mousemove', handleMove);
+            document.removeEventListener('touchmove', handleMove);
+
+            const dropTarget = Array.from(zones).find(z => z.classList.contains('hover'));
+            if (dropTarget) {
+                const result = dropTarget.getAttribute('data-type');
+                checkAnswer(result);
+            } else {
+                card.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                card.style.transform = `translate(0, 0)`;
+            }
+            zones.forEach(z => z.classList.remove('hover'));
+        }
+
+        let selectedWrong = false;
+
+        function checkAnswer(answer) {
+            const correctType = cases[currentIndex].type;
+            const isCorrect = answer === correctType;
+            feedbackOverlay.style.display = 'flex';
+            if (isCorrect) {
+                if (!selectedWrong) {
+                    score++;
+                    scoreVal.innerText = score;
+                }
+                feedbackTitle.innerText = "正確！";
+                feedbackTitle.style.color = "var(--c-federation)";
+                btnNext.innerText = "下一個案例";
+                btnNext.onclick = () => {
+                    feedbackOverlay.style.display = 'none';
+                    currentIndex++;
+                    selectedWrong = false;
+                    updateGame();
+                };
+            } else {
+                selectedWrong = true;
+                feedbackTitle.innerText = "差了一點！";
+                feedbackTitle.style.color = "#e74c3c";
+                btnNext.innerText = "再試一次";
+                btnNext.onclick = () => {
+                    feedbackOverlay.style.display = 'none';
+                };
+            }
+            feedbackText.innerText = cases[currentIndex].exp;
+            feedbackText.style.borderLeftColor = `var(--c-${cases[currentIndex].type})`;
+        }
+
+        const mascot = document.getElementById('mascot');
+        let mIsDragging = false;
+        let mStartX, mStartY, mStartLeft, mStartTop;
+
+        mascot.addEventListener('mousedown', (e) => {
+            mIsDragging = true;
+            mStartX = e.clientX;
+            mStartY = e.clientY;
+            const rect = mascot.getBoundingClientRect();
+            mStartLeft = rect.left;
+            mStartTop = rect.top;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!mIsDragging) return;
+            const dx = e.clientX - mStartX;
+            const dy = e.clientY - mStartY;
+            mascot.style.left = (mStartLeft + dx) + 'px';
+            mascot.style.top = (mStartTop + dy) + 'px';
+            mascot.style.bottom = 'auto';
+        });
+
+        document.addEventListener('mouseup', () => mIsDragging = false);
+
+        updateGame();
+    </script>
+</body>
+</html>

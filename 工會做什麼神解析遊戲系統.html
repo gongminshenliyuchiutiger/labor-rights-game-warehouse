@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工會做什麼神解析遊戲系統</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="透過互動救援遊戲認識工會在日常職場中的四大職能。">
+    <meta name="author" content="Liyuchiutiger Gongminshen">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --bg-color: #f0f7f9;
+            --c-welfare: #3498db;
+            --c-legal: #e74c3c;
+            --c-safety: #2ecc71;
+            --c-mutual: #9b59b6;
+            --c-gold: #f1c40f;
+            --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-color);
+            color: #333;
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        h1 { font-size: clamp(1.1rem, 5vw, 1.6rem); font-weight: 900; }
+
+        .solidarity-bar-container {
+            width: 80%;
+            max-width: 600px;
+            height: 25px;
+            background: #d1d8e0;
+            border-radius: 50px;
+            margin: 15px auto;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .solidarity-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f1c40f, #e67e22);
+            transition: width 0.8s ease;
+        }
+
+        .solidarity-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            z-index: 2;
+        }
+
+        .game-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .workplace-stage {
+            width: 100%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: var(--transition);
+            border: 4px solid transparent;
+        }
+
+        .crisis-avatar { font-size: 4rem; margin-bottom: 20px; }
+        .speech-bubble {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px 30px;
+            position: relative;
+            max-width: 90%;
+            border: 1px solid #eee;
+            margin-bottom: 15px;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 15px solid #f8f9fa;
+        }
+        .crisis-text { font-size: 1.25rem; font-weight: 700; line-height: 1.5; text-align: center; }
+
+        .actions-grid {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            text-align: center;
+            border: 2px solid #eee;
+        }
+
+        .action-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .action-icon { font-size: 2rem; margin-bottom: 10px; }
+        .action-label { font-weight: 900; font-size: 0.95rem; color: var(--primary-color); }
+
+        .a-welfare { border-bottom: 6px solid var(--c-welfare); }
+        .a-legal { border-bottom: 6px solid var(--c-legal); }
+        .a-safety { border-bottom: 6px solid var(--c-safety); }
+        .a-mutual { border-bottom: 6px solid var(--c-mutual); }
+
+        .a-welfare .action-icon { color: var(--c-welfare); }
+        .a-legal .action-icon { color: var(--c-legal); }
+        .a-safety .action-icon { color: var(--c-safety); }
+        .a-mutual .action-icon { color: var(--c-mutual); }
+
+        .feedback-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .feedback-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 35px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .feedback-result-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .feedback-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 15px; }
+        .feedback-text { font-size: 1.1rem; line-height: 1.7; background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 25px; text-align: left; border-left: 8px solid #ccc; }
+        
+        .btn-next {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 50px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-next:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #bdc3c7;
+            text-align: center;
+            padding: 40px 0;
+            margin-top: auto;
+            font-size: 14px;
+        }
+
+        .footer-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .footer-link:hover {
+            color: var(--c-gold);
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #mascot { 
+            position: fixed; 
+            bottom: 60px; 
+            left: 30px; 
+            width: 100px; 
+            z-index: 20; 
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1)); 
+            cursor: move; 
+        }
+
+        @media (max-width: 800px) {
+            .actions-grid { grid-template-columns: 1fr 1fr; }
+            #mascot { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-handshake-angle"></i> 工會做什麼神解析遊戲系統</h1>
+    </header>
+
+    <div class="solidarity-bar-container">
+        <div class="solidarity-fill" id="meter"></div>
+        <div class="solidarity-label">工會團結能量：<span id="meter-val">0</span>%</div>
+    </div>
+
+    <main class="game-main">
+        <div class="workplace-stage" id="stage">
+            <div class="crisis-avatar" id="avatar"><i class="fas fa-face-frown-open"></i></div>
+            <div class="speech-bubble">
+                <p class="crisis-text" id="crisis-desc">載入任務中...</p>
+            </div>
+            <p style="color: #999; font-size: 0.85rem;"><i class="fas fa-hand-pointer"></i> 請選擇適合的工會法寶卡進行神救援</p>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card a-welfare" data-type="welfare">
+                <i class="fas fa-comments-dollar action-icon"></i>
+                <span class="action-label">福利談判卡</span>
+            </div>
+            <div class="action-card a-legal" data-type="legal">
+                <i class="fas fa-shield-halved action-icon"></i>
+                <span class="action-label">法律之盾卡</span>
+            </div>
+            <div class="action-card a-safety" data-type="safety">
+                <i class="fas fa-hard-hat action-icon"></i>
+                <span class="action-label">職安守護卡</span>
+            </div>
+            <div class="action-card a-mutual" data-type="mutual">
+                <i class="fas fa-people-roof action-icon"></i>
+                <span class="action-label">生活互助卡</span>
+            </div>
+        </div>
+    </main>
+
+    <div id="feedback-overlay" class="feedback-overlay">
+        <div class="feedback-content">
+            <div class="feedback-result-icon" id="res-icon">✨</div>
+            <div id="feedback-title" class="feedback-title">神救援成功！</div>
+            <div id="feedback-text" class="feedback-text">解說內容...</div>
+            <button id="btn-next" class="btn-next">前往下個任務</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" class="footer-link">
+                <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+            </a>
+        </div>
+        <p>Copyright &copy; Liyuchiutiger Gongminshen</p>
+    </footer>
+
+    <img src="image/LiyuChillGuy.svg" id="mascot" alt="Mascot">
+
+    <script>
+        const missions = [
+            { crisis: "老闆突然宣布今年雖然獲利創新高，但為了擴場要取消所有人的年終獎金！", type: "welfare", exp: "【福利談判】是工會最核心的功能之一。面對資方片面取消獎金，工會能透過集體協商要求利潤分享，並將獎金制度化寫入團體協約。" },
+            { crisis: "一位懷孕的同事經常被主管暗示「如果不自動離職，以後考績會很難看」。", type: "legal", exp: "【法律之盾】工會能提供專業法律支援。這涉及性別工作平等法，工會能陪同勞資爭議調解，讓法律成為勞工對抗職場霸凌的後盾。" },
+            { crisis: "工廠內的灰塵越來越大，大家上班都一直咳嗽，管理層卻只想省錢不換過濾設備。", type: "safety", exp: "【職安守護】工會依法可推派勞工代表參與勞資會議，要求改善職場安全衛生環境，避免職業病發生，確保勞工健康長久。" },
+            { crisis: "老張的家裡因大火受災慘重，修繕費用讓他生活陷入困境，感到孤立無援。", type: "mutual", exp: "【生活互助】這展現了工會的溫情面。多數工會設有急難救助金與團體內部救濟機制，給予受難會員實質的關懷與經濟協助。" },
+            { crisis: "公司連三年沒調薪了，但物價卻一直漲，大家私下都在抱怨生活壓力好大。", type: "welfare", exp: "【福利談判】工會能定期要求勞資對話。集體談判能讓薪資水平跟上通膨，確保勞方的勞力付出獲得合理的對價與生活保障。" },
+            { crisis: "公司片面要求所有人簽署包含「天價賠償金」的離職競業禁止協議，大家都不敢不簽。", type: "legal", exp: "【法律之盾】不合理的合約條款需要專業把關。工會律師能為全體會員審閱條款，過濾違法約定，讓基層勞工不再因法律弱勢而受困。" },
+            { crisis: "工作區的電線長期裸露且多次冒出火花，多次反映都被無視，大家每天工作都戰戰兢兢。", type: "safety", exp: "【職安守護】勞工安全等不得。工會可發揮強大的監督與通報能量，強制要求雇主落實設施更新，防止憾事發生。" },
+            { crisis: "幾位年輕同事想在週末成立籃球社，但校外租場費太貴，希望能爭取公司補助。", type: "mutual", exp: "【生活互助】工會整合福利金，支持員工成立社團、舉辦員工旅遊。這不只能舒壓，更能增進同事間的情誼與向心力。" }
+        ];
+
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        let currentMissions = shuffle([...missions]);
+        let currentIndex = 0;
+        let solidarity = 0;
+        let selectedWrong = false;
+
+        const meter = document.getElementById('meter');
+        const meterVal = document.getElementById('meter-val');
+        const avatarBox = document.getElementById('avatar');
+        const crisisDesc = document.getElementById('crisis-desc');
+        const overlay = document.getElementById('feedback-overlay');
+        const resIcon = document.getElementById('res-icon');
+        const fbTitle = document.getElementById('feedback-title');
+        const fbText = document.getElementById('feedback-text');
+        const btnNext = document.getElementById('btn-next');
+        const actionCards = document.querySelectorAll('.action-card');
+        const stage = document.getElementById('stage');
+
+        function loadMission() {
+            if (currentIndex >= currentMissions.length) {
+                showFinal(); return;
+            }
+            const m = currentMissions[currentIndex];
+            avatarBox.innerHTML = '<i class="fas fa-face-frown-open"></i>';
+            crisisDesc.innerText = m.crisis;
+            stage.style.borderColor = "transparent";
+            selectedWrong = false;
+        }
+
+        actionCards.forEach(card => {
+            card.onclick = () => checkAnswer(card.getAttribute('data-type'));
+        });
+
+        function checkAnswer(answer) {
+            const m = currentMissions[currentIndex];
+            const isCorrect = answer === m.type;
+            overlay.style.display = 'flex';
+
+            if (isCorrect) {
+                if (!selectedWrong) { 
+                    solidarity += (100 / currentMissions.length);
+                    updateMeter();
+                }
+                resIcon.innerHTML = '<i class="fas fa-star" style="color: var(--c-gold)"></i>';
+                fbTitle.innerText = "神救援成功！";
+                fbTitle.style.color = "var(--c-safety)";
+                fbText.style.borderLeftColor = "var(--c-safety)";
+                avatarBox.innerHTML = '<i class="fas fa-face-smile-beam" style="color: var(--c-safety)"></i>';
+                btnNext.innerText = "前往下一個現場";
+                btnNext.onclick = () => {
+                    overlay.style.display = 'none';
+                    currentIndex++;
+                    loadMission();
+                };
+            } else {
+                selectedWrong = true;
+                resIcon.innerHTML = '<i class="fas fa-circle-xmark" style="color: var(--c-legal)"></i>';
+                fbTitle.innerText = "方向不太對喔...";
+                fbTitle.style.color = "var(--c-legal)";
+                fbText.style.borderLeftColor = "var(--c-legal)";
+                avatarBox.innerHTML = '<i class="fas fa-face-sad-tear" style="color: var(--c-legal)"></i>';
+                btnNext.innerText = "重新選擇法寶";
+                btnNext.onclick = () => overlay.style.display = 'none';
+            }
+            fbText.innerText = m.exp;
+        }
+
+        function updateMeter() {
+            const val = Math.round(solidarity);
+            meter.style.width = val + "%";
+            meterVal.innerText = val;
+        }
+
+        function showFinal() {
+            overlay.style.display = 'flex';
+            resIcon.innerHTML = '<i class="fas fa-trophy" style="color: var(--c-gold)"></i>';
+            fbTitle.innerText = "全能工會戰士！";
+            fbText.innerHTML = "恭喜達成 100% 團結能量！<br><br>你已深度認識工會在<b>福利、法律、安全、互助</b>上的正向能量。工會不僅是抗爭，更是守護職場日常最厚實的後盾！";
+            btnNext.innerText = "回首頁";
+            btnNext.onclick = () => window.location.href = 'index.html';
+        }
+
+        // Mascot
+        const mascot = document.getElementById('mascot');
+        let mDrag = false, mX, mY, mL, mT;
+        mascot.onmousedown = (e) => { mDrag = true; mX = e.clientX; mY = e.clientY; mL = mascot.offsetLeft; mT = mascot.offsetTop; e.preventDefault(); };
+        document.onmousemove = (e) => { if (mDrag) { mascot.style.left = (mL + e.clientX - mX) + 'px'; mascot.style.top = (mT + e.clientY - mY) + 'px'; mascot.style.bottom = 'auto'; } };
+        document.onmouseup = () => mDrag = false;
+
+        loadMission();
+    </script>
+</body>
+</html>

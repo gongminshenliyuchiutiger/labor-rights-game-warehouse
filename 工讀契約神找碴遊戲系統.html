@@ -24,6 +24,8 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         header {
@@ -36,7 +38,7 @@
 
         header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: clamp(1.2rem, 5vw, 28px);
         }
 
         .main-container {
@@ -172,9 +174,28 @@
             background-color: var(--primary-color);
             color: #bdc3c7;
             text-align: center;
-            padding: 15px 0;
+            padding: 40px 0;
             margin-top: auto;
             font-size: 14px;
+        }
+
+        .footer-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .footer-link:hover {
+            color: #f1c40f;
+            transform: translateY(-5px) scale(1.05);
+            background: rgba(255, 255, 255, 0.05);
+            text-shadow: 0 0 20px rgba(241, 196, 15, 0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         /* 吉祥物樣式與動畫 */
@@ -218,6 +239,10 @@
             80% { transform: translate(-1px, -1px) rotate(1deg); }
             90% { transform: translate(1px, 2px) rotate(0deg); }
             100% { transform: translate(1px, -2px) rotate(-1deg); }
+        @media (max-width: 600px) {
+            #mascot { display: none; }
+            .game-board { flex-direction: column; }
+            .contract-paper, .dashboard { min-width: 100%; }
         }
 
     </style>
@@ -262,7 +287,12 @@
     </div>
 
     <footer>
-        Copyright &copy; Liyuchiutiger Gongminshen
+        <div class="footer-links">
+            <a href="https://www.facebook.com/happyliyuchilltiger/" target="_blank" class="footer-link">
+                <i class="fab fa-facebook"></i> 快樂鯉魚秋老虎
+            </a>
+        </div>
+        <p>Copyright &copy; Liyuchiutiger Gongminshen</p>
     </footer>
 
     <!-- 吉祥物 -->
